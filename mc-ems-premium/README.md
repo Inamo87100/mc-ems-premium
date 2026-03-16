@@ -1,126 +1,127 @@
-# MC-EMS Premium – Add-on per Exam Session Management
+# MC-EMS Premium – Advanced Exam Management Add-on for Tutor LMS
 
-MC-EMS Premium è un add-on che potenzia il plugin base **MC-EMS – Exam Session Management** rimuovendo i limiti della versione gratuita e aggiungendo funzionalità avanzate.
+**MC-EMS Premium** is a premium add-on for **[MC-EMS – Exam Session Management](https://github.com/Inamo87100/mc-ems-base)** (Base). It extends the free base plugin with unlimited exam sessions, advanced exam booking management, and enhanced certification workflows — ideal for elearning platforms, certification bodies, and universities running large-scale exam scheduling with Tutor LMS.
 
-**Nota**: Richiede obbligatoriamente il plugin **MC-EMS Base** attivo per funzionare.
+> ⚠️ **Requires MC-EMS Base** (free plugin) to be installed and active. This add-on cannot run standalone.
 
-## Cosa aggiunge Premium?
+## What does Premium add?
 
-MC-EMS Premium rimuove tutti i limiti della versione Base permettendo una gestione di esami su larga scala, ideal per:
-- Enti certificatori con migliaia di candidati
-- Piattaforme LMS di grandi dimensioni
-- Università con molteplici sessioni d'esame
-- Organizzazioni con alto volume di prenotazioni
+MC-EMS Premium unlocks all limits of the Base version, enabling large-scale exam management for:
+- Certification bodies handling thousands of candidates
+- Large elearning platforms with high exam-booking volume
+- Universities with multiple exam sessions per day
+- Organizations requiring advanced exam scheduling and proctor management
 
-## Funzionalità Premium Esclusive
+## Exclusive Premium Features
 
-### Sessioni di Esame Illimitate
-La versione Base limita il numero di sessioni a 5. Con Premium:
-- ✅ **Crea unlimited sessioni di esame**
-- ✅ Gestisci migliaia di sessioni per esame
-- ✅ Nessun limite amministrativo
+### Unlimited Exam Sessions
+The Base version caps sessions at 5. With Premium:
+- ✅ **Create unlimited exam sessions**
+- ✅ Manage thousands of sessions per exam
+- ✅ No administrative limits
 
-### Capienza fino a 500 Posti per Sessione
-La versione Base limita la capienza a 5 posti per sessione. Con Premium:
-- ✅ **Fino a 500 posti per sessione**
-- ✅ Gestisci esami con tanti candidati
-- ✅ Perfetto per enti certificatori
+### Up to 500 Seats per Session
+The Base version limits capacity to 5 seats per session. With Premium:
+- ✅ **Up to 500 seats per session**
+- ✅ Handle large-group exam scheduling
+- ✅ Perfect for certification centers
 
-### Multipli Slot per Giorno
-La versione Base permette 1 slot per giorno per esame. Con Premium:
-- ✅ **Fino a 999 slot per giorno**
-- ✅ Crea multipli turni nella stessa giornata
-- ✅ Massima flessibilità nella programmazione
+### Multiple Slots per Day
+The Base version allows 1 slot per day per exam. With Premium:
+- ✅ **Up to 999 slots per day**
+- ✅ Create multiple exam shifts on the same day
+- ✅ Maximum flexibility in exam scheduling
 
-### Ricerca Avanzata con Toggle Base/Avanzata
-Premium migliora significativamente la lista prenotazioni:
-- ✅ **Toggle tra modalità ricerca Base e Avanzata**
-- ✅ Ricerca semplice: filtro per data singola
-- ✅ Ricerca avanzata: filtro per intervallo date (da/a)
-- ✅ Filtri per esame, candidato, stato
-- ✅ Export CSV ottimizzato
-- ✅ Visualizzazione completa dati prenotazioni
+### Advanced Booking Search with Toggle Base/Advanced
+Premium significantly improves the exam-booking list:
+- ✅ **Toggle between Basic and Advanced search modes**
+- ✅ Basic search: single-date filter
+- ✅ Advanced search: date-range filter (from/to)
+- ✅ Filters by exam, candidate, and status
+- ✅ Optimized CSV export
+- ✅ Full booking data display
 
-### Gestione Prenotazioni Potenziata
-- ✅ Interfaccia amministrativa superiore
-- ✅ Filtri e ricerche più veloci
-- ✅ Esportazione dati con migliori opzioni
-- ✅ Gestione bulk delle prenotazioni
+### Enhanced Booking Management
+- ✅ Superior admin interface
+- ✅ Faster filters and searches
+- ✅ Data export with more options
+- ✅ Bulk booking management
 
-## Confronto Completo: Base vs Premium
+## Feature Comparison: Base vs Premium
 
-| Funzionalità | Base | Premium |
+| Feature | Base | Premium |
 |---|---|---|
-| **Gestione Sessioni** | | |
-| Sessioni di esame (CPT) | ✓ | ✓ |
-| Numero massimo sessioni | 5 max | Illimitato (999.999) |
-| Capienza massima per sessione | 5 max | 500 max |
-| Slot per giorno per esame | 1 max | 999 max |
+| **Exam Session Management** | | |
+| Exam sessions (CPT) | ✓ | ✓ |
+| Maximum sessions | 5 max | Unlimited (999,999) |
+| Maximum seats per session | 5 max | 500 max |
+| Slots per day per exam | 1 max | 999 max |
 | | | |
-| **Prenotazioni** | | |
-| Prenotazione esami | ✓ | ✓ |
-| Calendario prenotazioni | ✓ | ✓ |
-| Gestione prenotazione utente | ✓ | ✓ |
+| **Exam Booking** | | |
+| Exam booking | ✓ | ✓ |
+| Booking calendar | ✓ | ✓ |
+| User booking management | ✓ | ✓ |
 | | | |
-| **Amministrazione** | | |
-| Calendario sessioni | ✓ | ✓ |
-| Assegnazione proctor | ✓ | ✓ |
-| Lista prenotazioni | ✓ | ✓ |
-| Ricerca prenotazioni | Base | Avanzata |
-| Export CSV | ✓ | ✓ |
+| **Administration** | | |
+| Session calendar | ✓ | ✓ |
+| Proctor assignment | ✓ | ✓ |
+| Booking list | ✓ | ✓ |
+| Booking search | Basic | Advanced |
+| CSV export | ✓ | ✓ |
 | | | |
-| **Integrazione** | | |
+| **Integration** | | |
 | Tutor LMS integration | ✓ | ✓ |
-| Controllo accesso esami | ✓ | ✓ |
+| Exam access control | ✓ | ✓ |
 | | | |
-| **Supporto** | Standard | Prioritario |
+| **Support** | Standard | Priority |
 
-## Requisiti
+## Requirements
 
-- **WordPress**: 6.0 o superiore
-- **PHP**: 7.0 o superiore
-- **MC-EMS Base**: Obbligatorio (deve essere attivo)
-- **Tutor LMS**: Per l'integrazione LMS
+- **WordPress**: 6.0 or higher
+- **PHP**: 7.0 or higher
+- **MC-EMS Base**: Required (must be installed and active) — [Download free from WordPress.org](https://wordpress.org/plugins/mc-ems-base/)
+- **Tutor LMS**: For LMS integration features
 
-## Installazione
+## Installation
 
-1. Assicurati che **MC-EMS Base** sia installato e attivo
-2. Scarica il plugin Premium dal WordPress Repository
-3. Attiva il plugin nella sezione Plugin di WordPress
-4. Il plugin Premium si integra automaticamente con il Base
-5. Tutte le funzionalità premium sono immediatamente disponibili
+1. Install and activate **MC-EMS Base** (free, required dependency)
+2. Download the MC-EMS Premium plugin ZIP
+3. Go to **WordPress → Plugins → Add New → Upload Plugin**
+4. Upload the ZIP and click **Install Now**
+5. Click **Activate**
+6. Premium features are immediately available — no additional configuration needed
 
-## Come Funziona
+## How It Works
 
-MC-EMS Premium è un vero e proprio add-on:
-- **Non sostituisce** il plugin Base
-- **Si integra** completamente con il Base
-- **Potenzia** tutte le funzionalità con rimozione dei limiti
-- **Mantiene** la compatibilità totale con il Base
+MC-EMS Premium is a true add-on plugin:
+- **Does not replace** the Base plugin
+- **Integrates seamlessly** with MC-EMS Base
+- **Removes all limits** from the Base version
+- **Maintains full compatibility** with Base settings and data
 
-Quando Premium è attivo:
-- Gli shortcode Base usano automaticamente le versioni potenziate
-- Tutti i limiti della versione Base vengono rimossi
-- Accedi subito a tutte le funzionalità avanzate
-- Nessuna configurazione aggiuntiva necessaria
+When Premium is active:
+- Base shortcodes automatically use the enhanced Premium versions
+- All limits from the Base version are removed
+- Advanced exam booking and session management features are immediately available
+- No additional configuration required
 
-## Versione
+## Version
 
 - **MC-EMS Premium**: 2.2.6.4
-- **Richiede MC-EMS Base**: 2.4.2 o superiore
+- **Requires MC-EMS Base**: 2.4.2 or higher
 
-## Note Importanti
+## Important Notes
 
-- ⚠️ **Il plugin Base è obbligatorio** per il funzionamento di Premium
-- ✅ Premium rimuove TUTTI i limiti della versione Base
-- ✅ Retrocompatibile con le impostazioni del Base
-- ✅ Nessuna perdita di dati durante l'upgrade
+- ⚠️ **MC-EMS Base is required** for Premium to function
+- ✅ Premium removes ALL limits from the Base version
+- ✅ Backward-compatible with existing Base settings
+- ✅ No data loss during upgrade
 
-## Ideale per
+## Ideal For
 
-MC-EMS Premium è perfetto per:
-- Enti certificatori con alte esigenze di volume
-- Piattaforme e-learning di grandi dimensioni
-- Università e centri di formazione con migliaia di candidati
-- Organizzazioni che richiedono gestione di esami su larga scala
-- Sistemi di certificazione con molteplici sessioni giornaliere
+MC-EMS Premium is perfect for:
+- Certification bodies with high candidate volumes
+- Large elearning platforms requiring advanced exam booking
+- Universities and training centers with thousands of candidates
+- Organizations managing large-scale exam scheduling and certification workflows
+- Tutor LMS-powered sites needing unlimited exam session management
