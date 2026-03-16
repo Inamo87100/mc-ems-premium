@@ -1,11 +1,17 @@
 <?php
 /*
-Plugin Name: MC-EMS Premium – Add-on
-Description: Premium add-on for MC-EMS: advanced exam exam bookings list features.
+Plugin Name: MC-EMS Premium – Add-on for Exam Session Management
+Plugin URI: https://github.com/Inamo87100/mc-ems-premium
+Description: Premium add-on for MC-EMS Base. Removes limits and adds advanced exam booking features: unlimited exam sessions, up to 500 seats per session, advanced booking search with date-range filters, bulk management, and optimized CSV export. Requires MC-EMS – Exam Session Management (Base) plugin.
 Version: 2.2.6.4-premium
+Requires at least: 6.0
+Requires PHP: 7.0
 Author: MC Tools
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: mc-ems
 Domain Path: /languages
+Requires Plugins: mc-ems-base
 */
 
 if (!defined('ABSPATH')) exit;
