@@ -17,7 +17,7 @@ MC-EMS Premium rimuove tutti i limiti della versione Base permettendo una gestio
 ### Sessioni di Esame Illimitate
 La versione Base limita il numero di sessioni a 5. Con Premium:
 - ✅ **Crea unlimited sessioni di esame**
-- ✅ Gestisci migliaia di sessioni per corso
+- ✅ Gestisci migliaia di sessioni per esame
 - ✅ Nessun limite amministrativo
 
 ### Capienza fino a 500 Posti per Sessione
@@ -27,7 +27,7 @@ La versione Base limita la capienza a 5 posti per sessione. Con Premium:
 - ✅ Perfetto per enti certificatori
 
 ### Multipli Slot per Giorno
-La versione Base permette 1 slot per giorno per corso. Con Premium:
+La versione Base permette 1 slot per giorno per esame. Con Premium:
 - ✅ **Fino a 999 slot per giorno**
 - ✅ Crea multipli turni nella stessa giornata
 - ✅ Massima flessibilità nella programmazione
@@ -37,7 +37,7 @@ Premium migliora significativamente la lista prenotazioni:
 - ✅ **Toggle tra modalità ricerca Base e Avanzata**
 - ✅ Ricerca semplice: filtro per data singola
 - ✅ Ricerca avanzata: filtro per intervallo date (da/a)
-- ✅ Filtri per corso, candidato, stato
+- ✅ Filtri per esame, candidato, stato
 - ✅ Export CSV ottimizzato
 - ✅ Visualizzazione completa dati prenotazioni
 
@@ -55,7 +55,7 @@ Premium migliora significativamente la lista prenotazioni:
 | Sessioni di esame (CPT) | ✓ | ✓ |
 | Numero massimo sessioni | 5 max | Illimitato (999.999) |
 | Capienza massima per sessione | 5 max | 500 max |
-| Slot per giorno per corso | 1 max | 999 max |
+| Slot per giorno per esame | 1 max | 999 max |
 | | | |
 | **Prenotazioni** | | |
 | Prenotazione esami | ✓ | ✓ |
@@ -71,7 +71,7 @@ Premium migliora significativamente la lista prenotazioni:
 | | | |
 | **Integrazione** | | |
 | Tutor LMS integration | ✓ | ✓ |
-| Controllo accesso corsi | ✓ | ✓ |
+| Controllo accesso esami | ✓ | ✓ |
 | | | |
 | **Supporto** | Standard | Prioritario |
 
