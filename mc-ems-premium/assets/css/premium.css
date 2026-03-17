@@ -264,6 +264,13 @@
   font-style: italic;
 }
 
+/* User roles line inside a result item */
+.mcems-user-result-item .mcems-user-roles {
+  color: #9ca3af;
+  font-size: 11px;
+  margin-top: 3px;
+}
+
 /* Selected user badge display area */
 .candidate-selected,
 .mcems-proctor-selected,

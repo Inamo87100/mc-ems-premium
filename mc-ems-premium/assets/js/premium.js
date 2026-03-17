@@ -281,6 +281,8 @@
         $hidden:    opts.$hidden,
         $selected:  opts.$selected,
         searchFor:  opts.searchFor || 'candidate',
+        showRoles:  opts.showRoles  || false,
+        prefix:     opts.prefix     || '',
         _timer:     null,
 
         init: function() {
@@ -347,21 +349,26 @@
           }
           const self = this;
           list.forEach(function(c) {
-            const full = [c.first_name, c.last_name].filter(Boolean).join(' ') || c.display_name || c.name || '';
+            const baseName = [c.first_name, c.last_name].filter(Boolean).join(' ') || c.display_name || c.name || '';
+            const full = self.prefix ? (self.prefix + ' ' + baseName) : baseName;
             const $item = $('<div class="mcems-user-result-item">')
               .data('id', c.id)
               .data('firstName', c.first_name || '')
               .data('lastName',  c.last_name  || '')
               .data('email',     c.email);
             $('<strong class="mcems-user-fullname">').text(full).appendTo($item);
-            $('<span class="mcems-user-email">').text(c.email).appendTo($item);
+            $('<span class="mcems-user-email">').text('✉️ ' + c.email).appendTo($item);
+            if (self.showRoles && c.roles && c.roles.length) {
+              $('<span class="mcems-user-roles">').text('👤 ' + c.roles.join(', ')).appendTo($item);
+            }
             self.$results.append($item);
           });
           this.$results.show();
         },
 
         select: function(id, firstName, lastName, email) {
-          const full = [firstName, lastName].filter(Boolean).join(' ') || email || '';
+          const baseName = [firstName, lastName].filter(Boolean).join(' ') || email || '';
+          const full = this.prefix ? (this.prefix + ' ' + baseName) : baseName;
           this.$hidden.val(id);
           this.$search.val('').hide();
           this.$results.empty().hide();
@@ -515,7 +522,8 @@
           resultsSel:  '.mcems-proctor-results',
           hiddenSel:   'input[name="proctor_id"]',
           selectedSel: '.mcems-proctor-selected',
-          searchFor:   'proctor'
+          searchFor:   'proctor',
+          showRoles:   true
         });
       });
     },
@@ -528,7 +536,8 @@
           resultsSel:  '.mcems-assoc-candidate-results',
           hiddenSel:   'input[name="assoc_candidate_id"]',
           selectedSel: '.mcems-assoc-candidate-selected',
-          searchFor:   'associated_candidate'
+          searchFor:   'associated_candidate',
+          prefix:      '♿'
         });
       });
     },
@@ -546,11 +555,13 @@
       // attributes set server-side when the form is pre-populated.
       const existingId = $hidden.val();
       if (existingId) {
-        const fn    = $hidden.data('firstName') || '';
-        const ln    = $hidden.data('lastName')  || '';
-        const email = $hidden.data('email')     || '';
+        const fn     = $hidden.data('firstName') || '';
+        const ln     = $hidden.data('lastName')  || '';
+        const email  = $hidden.data('email')     || '';
+        const prefix = sels.prefix || '';
         if (fn || ln || email) {
-          const full = [fn, ln].filter(Boolean).join(' ') || email;
+          const baseName = [fn, ln].filter(Boolean).join(' ') || email;
+          const full     = prefix ? (prefix + ' ' + baseName) : baseName;
           const $badge = $('<span class="mcems-user-selected-badge">');
           $('<span class="mcems-check-icon">').text('✓').appendTo($badge);
           $('<strong class="mcems-user-fullname">').text(full).appendTo($badge);
@@ -568,7 +579,9 @@
         $results:  $results,
         $hidden:   $hidden,
         $selected: $selected,
-        searchFor: sels.searchFor || 'candidate'
+        searchFor: sels.searchFor || 'candidate',
+        showRoles: sels.showRoles || false,
+        prefix:    sels.prefix    || ''
       });
     }
   };
