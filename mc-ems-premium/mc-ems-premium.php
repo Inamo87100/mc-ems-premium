@@ -4,7 +4,7 @@ Plugin Name: MC-EMS Premium – Add-on for Exam Session Management
 Plugin URI: https://github.com/Inamo87100/mc-ems-premium
 Description: Premium add-on for MC-EMS Base. Removes limits and adds advanced exam booking features: unlimited exam sessions, up to 500 seats per session, advanced booking search with date-range filters, bulk management, and optimized CSV export. Requires MC-EMS – Exam Session Management (Base) plugin.
 Version: 2.2.6.4-premium
-Requires at least: 6.0
+Requires at least: 5.0
 Requires PHP: 7.0
 Author: Mamba Coding
 Author URI: https://mambacoding.com/
