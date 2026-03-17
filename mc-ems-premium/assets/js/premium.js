@@ -272,14 +272,16 @@
      * @param {jQuery} opts.$results  - container dei risultati dropdown
      * @param {jQuery} opts.$hidden   - input hidden per l'ID selezionato
      * @param {jQuery} opts.$selected - container per il badge di selezione
+     * @param {string} [opts.searchFor='candidate'] - tipo di ricerca: 'proctor' | 'candidate' | 'associated_candidate'
      */
     create: function(opts) {
       const inst = {
-        $search:  opts.$search,
-        $results: opts.$results,
-        $hidden:  opts.$hidden,
-        $selected: opts.$selected,
-        _timer:   null,
+        $search:    opts.$search,
+        $results:   opts.$results,
+        $hidden:    opts.$hidden,
+        $selected:  opts.$selected,
+        searchFor:  opts.searchFor || 'candidate',
+        _timer:     null,
 
         init: function() {
           const self = this;
@@ -325,9 +327,10 @@
             type: 'POST',
             dataType: 'json',
             data: {
-              action: 'mcems_premium_search_candidates',
-              nonce:  mcems_premium.nonce,
-              query:  q
+              action:     'mcems_premium_search_users',
+              nonce:      mcems_premium.nonce,
+              query:      q,
+              search_for: self.searchFor
             },
             success: function(resp) {
               if (resp.success) { self.renderResults(resp.data); }
@@ -344,7 +347,7 @@
           }
           const self = this;
           list.forEach(function(c) {
-            const full = [c.first_name, c.last_name].filter(Boolean).join(' ') || c.name || '';
+            const full = [c.first_name, c.last_name].filter(Boolean).join(' ') || c.display_name || c.name || '';
             const $item = $('<div class="mcems-user-result-item">')
               .data('id', c.id)
               .data('firstName', c.first_name || '')
@@ -511,7 +514,8 @@
           searchSel:   '.mcems-proctor-search',
           resultsSel:  '.mcems-proctor-results',
           hiddenSel:   'input[name="proctor_id"]',
-          selectedSel: '.mcems-proctor-selected'
+          selectedSel: '.mcems-proctor-selected',
+          searchFor:   'proctor'
         });
       });
     },
@@ -523,7 +527,8 @@
           searchSel:   '.mcems-assoc-candidate-search',
           resultsSel:  '.mcems-assoc-candidate-results',
           hiddenSel:   'input[name="assoc_candidate_id"]',
-          selectedSel: '.mcems-assoc-candidate-selected'
+          selectedSel: '.mcems-assoc-candidate-selected',
+          searchFor:   'associated_candidate'
         });
       });
     },
@@ -562,7 +567,8 @@
         $search:   $search,
         $results:  $results,
         $hidden:   $hidden,
-        $selected: $selected
+        $selected: $selected,
+        searchFor: sels.searchFor || 'candidate'
       });
     }
   };
