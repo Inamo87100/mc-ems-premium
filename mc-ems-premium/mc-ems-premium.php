@@ -6,7 +6,8 @@ Description: Premium add-on for MC-EMS Base. Removes limits and adds advanced ex
 Version: 2.2.6.4-premium
 Requires at least: 6.0
 Requires PHP: 7.0
-Author: MC Tools
+Author: Mamba Coding
+Author URI: https://mambacoding.com/
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: mc-ems
