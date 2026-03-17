@@ -227,8 +227,8 @@ class MCEMS_Bookings_List {
 
 
     public static function shortcode(): string {
-        if (!is_user_logged_in()) return '<p>You must be logged in.</p>';
-        if (!self::can_view()) return '<p>Insufficient permissions.</p>';
+        if (!is_user_logged_in()) return '<p>' . esc_html__('You must be logged in.', 'mc-ems') . '</p>';
+        if (!self::can_view()) return '<p>' . esc_html__('Insufficient permissions.', 'mc-ems') . '</p>';
 
         $courses = MCEMS_Tutor::get_courses();
         $course_pt = MCEMS_Tutor::course_post_type();
@@ -268,12 +268,12 @@ ob_start();
 
         <div class="mcems-adminwrap">
             <div class="mcems-panel">
-                <h3 class="mcems-title"><?php echo esc_html('Exam exam bookings list'); ?></h3>
-                <p class="mcems-desc"><?php echo sprintf(esc_html('Filter by %1$sdate%2$s (single day or date range). You can also filter by course.'), '<strong>', '</strong>'); ?></p>
+                <h3 class="mcems-title"><?php echo esc_html__('Exam exam bookings list', 'mc-ems'); ?></h3>
+                <p class="mcems-desc"><?php echo sprintf(esc_html__('Filter by %1$sdate%2$s (single day or date range). You can also filter by course.', 'mc-ems'), '<strong>', '</strong>'); ?></p>
 
 <div class="mcems-search-toggle" style="margin:8px 0 14px 0;">
     <button type="button" id="mcems_adv_btn" class="mcems-btn" aria-pressed="false">
-        Advanced search
+        <?php echo esc_html__('Advanced search', 'mc-ems'); ?>
     </button>
 </div>
 
@@ -291,15 +291,15 @@ ob_start();
 <input type="hidden" id="mcems_adv" name="mcems_adv" value="<?php echo $advanced ? '1' : '0'; ?>">
 <div class="mcems-basic-filters" style="display:flex; gap:12px; flex-wrap:wrap;">
 <div class="mcems-field">
-                        <label for="mcems_date"><?php echo esc_html('Date'); ?></label>
+                        <label for="mcems_date"><?php echo esc_html__('Date', 'mc-ems'); ?></label>
                         <input type="date" id="mcems_date" name="mcems_date" value="<?php echo esc_attr($selected_date); ?>">
                     </div>
 
                     
 <div class="mcems-field">
-                        <label for="mcems_course"><?php echo esc_html('Course'); ?></label>
+                        <label for="mcems_course"><?php echo esc_html__('Course', 'mc-ems'); ?></label>
                         <select id="mcems_course" name="mcems_course">
-                            <option value="0"><?php echo esc_html('All courses'); ?></option>
+                            <option value="0"><?php echo esc_html__('All courses', 'mc-ems'); ?></option>
                             <?php if ($course_pt && $courses): foreach ($courses as $cid => $title): ?>
                                 <option value="<?php echo (int)$cid; ?>" <?php selected($selected_course, (int)$cid); ?>>
                                     <?php echo esc_html($title); ?>
@@ -312,19 +312,19 @@ ob_start();
 </div>
 <div class="mcems-advanced-filters" style="display:flex; gap:12px; flex-wrap:wrap; margin-top:10px;">
 <div class="mcems-field">
-                        <label for="mcems_from"><?php echo esc_html('From'); ?></label>
+                        <label for="mcems_from"><?php echo esc_html__('From', 'mc-ems'); ?></label>
                         <input type="date" id="mcems_from" name="mcems_from" value="<?php echo esc_attr($date_from); ?>">
                     </div>
 
                     
 <div class="mcems-field">
-                        <label for="mcems_to"><?php echo esc_html('To'); ?></label>
+                        <label for="mcems_to"><?php echo esc_html__('To', 'mc-ems'); ?></label>
                         <input type="date" id="mcems_to" name="mcems_to" value="<?php echo esc_attr($date_to); ?>">
                     </div>
 <div class="mcems-field">
-                        <label for="mcems_course"><?php echo esc_html('Course'); ?></label>
+                        <label for="mcems_course"><?php echo esc_html__('Course', 'mc-ems'); ?></label>
                         <select id="mcems_course" name="mcems_course">
-                            <option value="0"><?php echo esc_html('All courses'); ?></option>
+                            <option value="0"><?php echo esc_html__('All courses', 'mc-ems'); ?></option>
                             <?php if ($course_pt && $courses): foreach ($courses as $cid => $title): ?>
                                 <option value="<?php echo (int)$cid; ?>" <?php selected($selected_course, (int)$cid); ?>>
                                     <?php echo esc_html($title); ?>
@@ -336,10 +336,10 @@ ob_start();
                     
 </div>
 <div class="mcems-actions">
-                        <button class="mcems-btn" type="submit"><?php echo esc_html('Filter'); ?></button>
-                        <a class="mcems-link" href="<?php echo esc_url(remove_query_arg(['mcems_date','mcems_from','mcems_to','mcems_course'])); ?>">Reset</a>
+                        <button class="mcems-btn" type="submit"><?php echo esc_html__('Filter', 'mc-ems'); ?></button>
+                        <a class="mcems-link" href="<?php echo esc_url(remove_query_arg(['mcems_date','mcems_from','mcems_to','mcems_course'])); ?>"><?php echo esc_html__('Reset', 'mc-ems'); ?></a>
                     <?php if ($has_filter): ?>
-                        <button class="mcems-btn" type="submit" name="mcems_export" value="csv"><?php echo esc_html('Export CSV'); ?></button>
+                        <button class="mcems-btn" type="submit" name="mcems_export" value="csv"><?php echo esc_html__('Export CSV', 'mc-ems'); ?></button>
                         <?php endif; ?>
                     </div>
                 <script>
@@ -357,7 +357,7 @@ ob_start();
         if(btn){
             btn.setAttribute('aria-pressed', isAdv ? 'true' : 'false');
             // Update button label: show the action to switch mode
-            btn.textContent = isAdv ? 'Basic search' : 'Advanced search';
+            btn.textContent = isAdv ? '<?php echo esc_js(__('Basic search', 'mc-ems')); ?>' : '<?php echo esc_js(__('Advanced search', 'mc-ems')); ?>';
             var sw = btn.querySelector('.mcems-adv-switch');
             var kb = btn.querySelector('.mcems-adv-knob');
             if(sw) sw.style.background = isAdv ? '#101828' : '#e4e7ec';
@@ -394,7 +394,7 @@ ob_start();
 </form>
 
                 <?php if (!$has_filter): ?>
-                    <div class="mcems-empty">📌 <?php echo sprintf(esc_html('Select a date filter and press %1$sFilter%2$s to see the exam bookings list.'), '<strong>', '</strong>'); ?></div>
+                    <div class="mcems-empty">📌 <?php echo sprintf(esc_html__('Select a date filter and press %1$sFilter%2$s to see the exam bookings list.', 'mc-ems'), '<strong>', '</strong>'); ?></div>
                 <?php else: ?>
 
                     <?php
@@ -408,33 +408,33 @@ ob_start();
                     }
                     ?>
                     <div class="mcems-hint">
-                        <span class="mcems-pill">📅 <?php echo esc_html('Date:'); ?> <strong><?php echo esc_html($label); ?></strong></span>
+                        <span class="mcems-pill">📅 <?php echo esc_html__('Date:', 'mc-ems'); ?> <strong><?php echo esc_html($label); ?></strong></span>
                         <?php if ($selected_course > 0): ?>
-                            <span class="mcems-pill">📘 <?php echo esc_html('Course:'); ?> <strong><?php echo esc_html(MCEMS_Tutor::course_title($selected_course)); ?></strong></span>
+                            <span class="mcems-pill">📘 <?php echo esc_html__('Course:', 'mc-ems'); ?> <strong><?php echo esc_html(MCEMS_Tutor::course_title($selected_course)); ?></strong></span>
                         <?php else: ?>
-                            <span class="mcems-pill">📘 <?php echo esc_html('Course:'); ?> <strong><?php echo esc_html('All'); ?></strong></span>
+                            <span class="mcems-pill">📘 <?php echo esc_html__('Course:', 'mc-ems'); ?> <strong><?php echo esc_html__('All', 'mc-ems'); ?></strong></span>
                         <?php endif; ?>
-                        <span class="mcems-pill"><?php echo esc_html('👥 Exam bookings:'); ?> <strong><?php echo (int) count($rows); ?></strong></span>
+                        <span class="mcems-pill"><?php echo esc_html__('👥 Exam bookings:', 'mc-ems'); ?> <strong><?php echo (int) count($rows); ?></strong></span>
                     </div>
 
                     <div class="mcems-tablewrap">
                         <table class="mcems-table">
                             <thead>
                                 <tr>
-                                    <th><?php echo esc_html('Last name'); ?></th>
-                                    <th><?php echo esc_html('First name'); ?></th>
-                                    <th><?php echo esc_html('Email'); ?></th>
-                                    <th><?php echo esc_html('Session ID'); ?></th>
-                                    <th><?php echo esc_html('Exam session date'); ?></th>
-                                    <th><?php echo esc_html('Exam session time'); ?></th>
-                                    <th><?php echo esc_html('Course'); ?></th>
+                                    <th><?php echo esc_html__('Last name', 'mc-ems'); ?></th>
+                                    <th><?php echo esc_html__('First name', 'mc-ems'); ?></th>
+                                    <th><?php echo esc_html__('Email', 'mc-ems'); ?></th>
+                                    <th><?php echo esc_html__('Session ID', 'mc-ems'); ?></th>
+                                    <th><?php echo esc_html__('Exam session date', 'mc-ems'); ?></th>
+                                    <th><?php echo esc_html__('Exam session time', 'mc-ems'); ?></th>
+                                    <th><?php echo esc_html__('Course', 'mc-ems'); ?></th>
                                     <th>♿</th>
-                                    <th><?php echo esc_html('Proctor'); ?></th>
+                                    <th><?php echo esc_html__('Proctor', 'mc-ems'); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
                             <?php if (!$rows): ?>
-                                <tr><td colspan="9" style="text-align:center;color:#667085;padding:14px;">No exam bookings found for these filters.</td></tr>
+                                <tr><td colspan="9" style="text-align:center;color:#667085;padding:14px;"><?php echo esc_html__('No exam bookings found for these filters.', 'mc-ems'); ?></td></tr>
                             <?php else: foreach ($rows as $r): ?>
                                 <tr>
                                     <td><?php echo esc_html($r['cognome']); ?></td>
