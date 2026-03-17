@@ -47,6 +47,7 @@ final class EMS_Premium_Bootstrap {
         if (!self::base_active()) return;
 
         require_once plugin_dir_path(__FILE__) . 'includes/class-mcems-bookings-list.php';
+        require_once plugin_dir_path(__FILE__) . 'includes/class-mcems-ajax.php';
 
         // Replace placeholder shortcode (Base) with real one
         if (shortcode_exists('mcems_bookings_list')) {
@@ -55,6 +56,10 @@ final class EMS_Premium_Bootstrap {
 
         if (class_exists('MCEMS_Bookings_List')) {
             MCEMS_Bookings_List::init();
+        }
+
+        if (class_exists('MCEMS_Premium_Ajax')) {
+            MCEMS_Premium_Ajax::init();
         }
     }
 }
