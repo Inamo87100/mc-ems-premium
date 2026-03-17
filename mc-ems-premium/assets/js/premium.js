@@ -261,6 +261,130 @@
   };
 
   // ========================================
+  // USER SEARCH SELECTOR (componente riutilizzabile)
+  // ========================================
+
+  const MCEMSUserSearchSelector = {
+    /**
+     * Crea un'istanza del selettore utente.
+     * @param {Object} opts
+     * @param {jQuery} opts.$search   - input di ricerca testo
+     * @param {jQuery} opts.$results  - container dei risultati dropdown
+     * @param {jQuery} opts.$hidden   - input hidden per l'ID selezionato
+     * @param {jQuery} opts.$selected - container per il badge di selezione
+     */
+    create: function(opts) {
+      const inst = {
+        $search:  opts.$search,
+        $results: opts.$results,
+        $hidden:  opts.$hidden,
+        $selected: opts.$selected,
+        _timer:   null,
+
+        init: function() {
+          const self = this;
+          // 200 ms: allows a click on a result item to register before the
+          // blur event fires and closes the dropdown.
+          const BLUR_HIDE_DELAY = 200;
+
+          // Use 'input' event to skip non-character keys (arrows, shift, etc.)
+          this.$search.on('input', function() {
+            clearTimeout(self._timer);
+            const q = $(this).val();
+            self._timer = setTimeout(function() { self.search(q); }, 300);
+          });
+
+          this.$search.on('blur', function() {
+            setTimeout(function() { self.$results.empty().hide(); }, BLUR_HIDE_DELAY);
+          });
+
+          this.$results.on('click', '.mcems-user-result-item', function() {
+            self.select(
+              $(this).data('id'),
+              $(this).data('firstName'),
+              $(this).data('lastName'),
+              $(this).data('email')
+            );
+          });
+
+          this.$selected.on('click', '.mcems-user-clear', function() {
+            self.clear();
+          });
+
+          return this;
+        },
+
+        search: function(q) {
+          if (!q || q.length < 2) {
+            this.$results.empty().hide();
+            return;
+          }
+          const self = this;
+          $.ajax({
+            url: mcems_premium.ajax_url,
+            type: 'POST',
+            dataType: 'json',
+            data: {
+              action: 'mcems_premium_search_candidates',
+              nonce:  mcems_premium.nonce,
+              query:  q
+            },
+            success: function(resp) {
+              if (resp.success) { self.renderResults(resp.data); }
+            }
+          });
+        },
+
+        renderResults: function(list) {
+          this.$results.empty();
+          if (!list || !list.length) {
+            $('<div class="mcems-user-no-results">').text('Nessun utente trovato').appendTo(this.$results);
+            this.$results.show();
+            return;
+          }
+          const self = this;
+          list.forEach(function(c) {
+            const full = [c.first_name, c.last_name].filter(Boolean).join(' ') || c.name || '';
+            const $item = $('<div class="mcems-user-result-item">')
+              .data('id', c.id)
+              .data('firstName', c.first_name || '')
+              .data('lastName',  c.last_name  || '')
+              .data('email',     c.email);
+            $('<strong class="mcems-user-fullname">').text(full).appendTo($item);
+            $('<span class="mcems-user-email">').text(c.email).appendTo($item);
+            self.$results.append($item);
+          });
+          this.$results.show();
+        },
+
+        select: function(id, firstName, lastName, email) {
+          const full = [firstName, lastName].filter(Boolean).join(' ') || email || '';
+          this.$hidden.val(id);
+          this.$search.val('').hide();
+          this.$results.empty().hide();
+
+          const $badge = $('<span class="mcems-user-selected-badge">');
+          $('<span class="mcems-check-icon">').text('✓').appendTo($badge);
+          $('<strong class="mcems-user-fullname">').text(full).appendTo($badge);
+          if (email) {
+            $('<span class="mcems-user-email">').text('(' + email + ')').appendTo($badge);
+          }
+          $('<button type="button" class="mcems-user-clear">').text('Rimuovi').appendTo($badge);
+          this.$selected.empty().append($badge).show();
+        },
+
+        clear: function() {
+          this.$hidden.val('');
+          this.$selected.empty().hide();
+          this.$search.val('').show();
+        }
+      };
+
+      return inst.init();
+    }
+  };
+
+  // ========================================
   // SESSIONI ACCESSIBILITÀ
   // ========================================
 
@@ -271,87 +395,65 @@
     },
 
     cacheDom: function() {
-      this.$container = $('.mcems-special-sessions');
-      this.$form = this.$container.find('.special-session-form');
-      this.$btnAdd = this.$container.find('.btn-add-special-session');
-      this.$candidateSearch = this.$form.find('input[name="candidate_search"]');
+      this.$container        = $('.mcems-special-sessions');
+      this.$form             = this.$container.find('.special-session-form');
+      this.$btnAdd           = this.$container.find('.btn-add-special-session');
+      this.$candidateSearch  = this.$form.find('input[name="candidate_search"]');
       this.$candidateResults = this.$container.find('.candidate-results');
+      this.$candidateId      = this.$form.find('input[name="candidate_id"]');
+
+      // Inject selected-display element if not already present
+      if (!this.$form.find('.candidate-selected').length) {
+        this.$candidateSearch.after('<div class="candidate-selected" style="display:none;"></div>');
+      }
+      this.$candidateSelected = this.$form.find('.candidate-selected');
+
+      // Mark results container for shared CSS
+      this.$candidateResults.addClass('mcems-user-results');
+      this.$candidateResults.hide();
     },
 
     bindEvents: function() {
       const self = this;
 
-      // Candidate search
-      this.$candidateSearch.on('keyup', function() {
-        clearTimeout(self.searchTimeout);
-        self.searchTimeout = setTimeout(function() {
-          self.searchCandidates($(this).val());
-        }, 300);
-      });
+      if (this.$candidateSearch.length) {
+        this._selector = MCEMSUserSearchSelector.create({
+          $search:   this.$candidateSearch,
+          $results:  this.$candidateResults,
+          $hidden:   this.$candidateId,
+          $selected: this.$candidateSelected
+        });
+      }
 
-      // Add button
       this.$btnAdd.on('click', function(e) {
         e.preventDefault();
         self.addSpecialSession();
       });
-
-      // Select candidate from search results
-      this.$container.on('click', '.candidate-result-item', function() {
-        const candidateId = $(this).data('candidate-id');
-        const candidateName = $(this).text();
-        self.selectCandidate(candidateId, candidateName);
-      });
     },
 
+    // Kept for backward compatibility
     searchCandidates: function(query) {
-      if (query.length < 2) {
-        this.$candidateResults.empty();
-        return;
-      }
-
-      const self = this;
-
-      $.ajax({
-        url: mcems_premium.ajax_url,
-        type: 'POST',
-        dataType: 'json',
-        data: {
-          action: 'mcems_premium_search_candidates',
-          nonce: mcems_premium.nonce,
-          query: query
-        },
-        success: function(response) {
-          if (response.success) {
-            self.renderCandidateResults(response.data);
-          }
-        }
-      });
+      if (this._selector) { this._selector.search(query); }
     },
 
     renderCandidateResults: function(candidates) {
-      if (candidates.length === 0) {
-        this.$candidateResults.html('<div class="text-muted">Nessun candidato trovato</div>');
-        return;
-      }
-
-      let html = '';
-      candidates.forEach(function(candidate) {
-        html += `<div class="candidate-result-item" data-candidate-id="${candidate.id}">${candidate.name} (${candidate.email})</div>`;
-      });
-
-      this.$candidateResults.html(html);
+      if (this._selector) { this._selector.renderResults(candidates); }
     },
 
     selectCandidate: function(candidateId, candidateName) {
-      this.$form.find('input[name="candidate_id"]').val(candidateId);
-      this.$candidateSearch.val(candidateName);
-      this.$candidateResults.empty();
+      if (this._selector) {
+        this._selector.select(candidateId, '', '', candidateName || '');
+      } else {
+        this.$form.find('input[name="candidate_id"]').val(candidateId);
+        this.$candidateSearch.val(candidateName);
+        this.$candidateResults.empty();
+      }
     },
 
     addSpecialSession: function() {
-      const candidateId = this.$form.find('input[name="candidate_id"]').val();
-      const sessionId = this.$form.find('select[name="session_id"]').val();
-      const notes = this.$form.find('textarea[name="notes"]').val();
+      const candidateId = this.$candidateId.val();
+      const sessionId   = this.$form.find('select[name="session_id"]').val();
+      const notes       = this.$form.find('textarea[name="notes"]').val();
 
       if (!candidateId || !sessionId) {
         alert('Seleziona un candidato e una sessione');
@@ -378,7 +480,9 @@
           if (response.success) {
             alert('Sessione speciale aggiunta con successo!');
             self.$form[0].reset();
-            self.$candidateResults.empty();
+            self.$candidateResults.empty().hide();
+            self.$candidateSelected.empty().hide();
+            self.$candidateSearch.show();
           } else {
             alert('Errore: ' + response.data);
           }
@@ -386,6 +490,79 @@
         complete: function() {
           self.$form.removeClass('loading');
         }
+      });
+    }
+  };
+
+  // ========================================
+  // SESSION EDIT – Proctor & Associated Candidate
+  // ========================================
+
+  const MCEMSSessionEdit = {
+    init: function() {
+      this._initProctorFields();
+      this._initAssocCandidateFields();
+    },
+
+    _initProctorFields: function() {
+      const self = this;
+      $('.mcems-proctor-field').each(function() {
+        self._initField($(this), {
+          searchSel:   '.mcems-proctor-search',
+          resultsSel:  '.mcems-proctor-results',
+          hiddenSel:   'input[name="proctor_id"]',
+          selectedSel: '.mcems-proctor-selected'
+        });
+      });
+    },
+
+    _initAssocCandidateFields: function() {
+      const self = this;
+      $('.mcems-assoc-candidate-field').each(function() {
+        self._initField($(this), {
+          searchSel:   '.mcems-assoc-candidate-search',
+          resultsSel:  '.mcems-assoc-candidate-results',
+          hiddenSel:   'input[name="assoc_candidate_id"]',
+          selectedSel: '.mcems-assoc-candidate-selected'
+        });
+      });
+    },
+
+    _initField: function($wrap, sels) {
+      const $search   = $wrap.find(sels.searchSel);
+      const $results  = $wrap.find(sels.resultsSel);
+      const $hidden   = $wrap.find(sels.hiddenSel);
+      const $selected = $wrap.find(sels.selectedSel);
+
+      if (!$search.length || !$hidden.length) { return; }
+
+      // If a value is already stored, show the pre-filled badge.
+      // The hidden input must have data-first-name, data-last-name, and data-email
+      // attributes set server-side when the form is pre-populated.
+      const existingId = $hidden.val();
+      if (existingId) {
+        const fn    = $hidden.data('firstName') || '';
+        const ln    = $hidden.data('lastName')  || '';
+        const email = $hidden.data('email')     || '';
+        if (fn || ln || email) {
+          const full = [fn, ln].filter(Boolean).join(' ') || email;
+          const $badge = $('<span class="mcems-user-selected-badge">');
+          $('<span class="mcems-check-icon">').text('✓').appendTo($badge);
+          $('<strong class="mcems-user-fullname">').text(full).appendTo($badge);
+          if (email) {
+            $('<span class="mcems-user-email">').text('(' + email + ')').appendTo($badge);
+          }
+          $('<button type="button" class="mcems-user-clear">').text('Rimuovi').appendTo($badge);
+          $selected.empty().append($badge).show();
+          $search.hide();
+        }
+      }
+
+      MCEMSUserSearchSelector.create({
+        $search:   $search,
+        $results:  $results,
+        $hidden:   $hidden,
+        $selected: $selected
       });
     }
   };
@@ -446,14 +623,18 @@
       MCEMSSpecialSessions.init();
     }
 
+    MCEMSSessionEdit.init();
+
     MCEMSModal.init();
   });
 
   // Expose to global scope
   window.MCEMSPremium = {
-    BookingsList: MCEMSPremiumBookingsList,
-    SpecialSessions: MCEMSSpecialSessions,
-    Modal: MCEMSModal
+    BookingsList:       MCEMSPremiumBookingsList,
+    SpecialSessions:    MCEMSSpecialSessions,
+    SessionEdit:        MCEMSSessionEdit,
+    UserSearchSelector: MCEMSUserSearchSelector,
+    Modal:              MCEMSModal
   };
 
 })(jQuery);
