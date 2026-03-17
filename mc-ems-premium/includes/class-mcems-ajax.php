@@ -18,12 +18,12 @@ class MCEMS_Premium_Ajax {
      */
     public static function search_candidates(): void {
         if ( ! check_ajax_referer( 'mcems_premium_nonce', 'nonce', false ) ) {
-            wp_send_json_error( 'Nonce non valido.', 403 );
+            wp_send_json_error( __( 'Invalid nonce.', 'mc-ems' ), 403 );
             return;
         }
 
         if ( ! is_user_logged_in() || ! current_user_can( 'edit_posts' ) ) {
-            wp_send_json_error( 'Permessi insufficienti.', 403 );
+            wp_send_json_error( __( 'Insufficient permissions.', 'mc-ems' ), 403 );
             return;
         }
 
@@ -97,12 +97,12 @@ class MCEMS_Premium_Ajax {
      */
     public static function search_users(): void {
         if ( ! check_ajax_referer( 'mcems_premium_nonce', 'nonce', false ) ) {
-            wp_send_json_error( 'Nonce non valido.', 403 );
+            wp_send_json_error( __( 'Invalid nonce.', 'mc-ems' ), 403 );
             return;
         }
 
         if ( ! is_user_logged_in() || ! current_user_can( 'edit_posts' ) ) {
-            wp_send_json_error( 'Permessi insufficienti.', 403 );
+            wp_send_json_error( __( 'Insufficient permissions.', 'mc-ems' ), 403 );
             return;
         }
 
