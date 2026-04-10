@@ -25,6 +25,23 @@ function mc_ems_load_textdomain() {
 add_action('plugins_loaded', 'mc_ems_load_textdomain');
 define('EMS_PREMIUM_VERSION', '1.1.4');
 
+// ---------------------------------------------------------------------------
+// License management – loaded early so cron hooks and admin UI are always
+// registered, independently of whether the base plugin is active.
+// ---------------------------------------------------------------------------
+require_once plugin_dir_path(__FILE__) . 'includes/class-mcems-license.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-mcems-license-page.php';
+
+MCEMS_License::init();
+MCEMS_License_Page::init();
+
+// Clean up cron event on plugin deactivation.
+register_deactivation_hook(__FILE__, ['MCEMS_License', 'deactivate']);
+
+// ---------------------------------------------------------------------------
+// Premium bootstrap
+// ---------------------------------------------------------------------------
+
 final class EMS_Premium_Bootstrap {
 
     public static function init(): void {
@@ -47,6 +64,11 @@ final class EMS_Premium_Bootstrap {
     public static function boot(): void {
         if (!self::base_active()) return;
 
+        // Gate ALL premium features behind a valid license.
+        // The site and the free plugin are never affected.
+        if (!MCEMS_License::is_valid()) return;
+
+        require_once plugin_dir_path(__FILE__) . 'includes/class-mcems-unlimited-limits.php';
         require_once plugin_dir_path(__FILE__) . 'includes/class-mcems-bookings-list.php';
         require_once plugin_dir_path(__FILE__) . 'includes/class-mcems-ajax.php';
 
