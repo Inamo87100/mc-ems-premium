@@ -58,7 +58,13 @@ final class EMS_Premium_Bootstrap {
         if (!current_user_can('activate_plugins')) return;
         if (self::base_active()) return;
 
-        echo '<div class="notice notice-error"><p><strong>MC-EMS Premium</strong> richiede il plugin <strong>MC-EMS – Exam Center for Tutor LMS</strong> attivo.</p></div>';
+        /* translators: both plugin names should not be translated */
+        echo '<div class="notice notice-error"><p>'
+            . wp_kses(
+                __( '<strong>MC-EMS Premium</strong> requires the <strong>MC-EMS &ndash; Exam Center for Tutor LMS</strong> plugin to be installed and active.', 'mc-ems' ),
+                [ 'strong' => [] ]
+            )
+            . '</p></div>';
     }
 
     public static function boot(): void {
