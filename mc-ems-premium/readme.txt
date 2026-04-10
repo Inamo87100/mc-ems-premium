@@ -7,15 +7,15 @@ Requires PHP: 7.0
 Stable tag: 2.2.6.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
-Requires Plugins: mc-ems-base
+Requires Plugins: mc-ems-exam-center-for-tutor-lms
 
-Premium add-on for MC-EMS Base. Removes limits and adds advanced exam booking and certification management features for Tutor LMS.
+Premium add-on for MC-EMS – Exam Center for Tutor LMS. Removes limits and adds advanced exam booking and certification management features for Tutor LMS.
 
 == Description ==
 
-**MC-EMS Premium** is a premium add-on for [MC-EMS – Exam Session Management](https://wordpress.org/plugins/mc-ems-base/) (Base). It extends the free base plugin with unlimited exam sessions, advanced exam booking management, and enhanced certification workflows — ideal for elearning platforms, certification bodies, and universities running large-scale exam scheduling with Tutor LMS.
+**MC-EMS Premium** is a premium add-on for **MC-EMS – Exam Center for Tutor LMS** (Base). It extends the free base plugin with unlimited exam sessions, advanced exam booking management, and enhanced certification workflows — ideal for elearning platforms, certification bodies, and universities running large-scale exam scheduling with Tutor LMS.
 
-> **Requires MC-EMS Base** (free plugin) to be installed and active. This add-on cannot run standalone.
+> **Requires MC-EMS – Exam Center for Tutor LMS** (free plugin) to be installed and active. This add-on cannot run standalone.
 
 = What does Premium add? =
 
@@ -57,12 +57,12 @@ Superior admin interface with faster filters, bulk booking management, and exten
 
 * WordPress 6.0 or higher
 * PHP 7.0 or higher
-* **MC-EMS Base** (required — must be installed and active)
+* **MC-EMS – Exam Center for Tutor LMS** (required — must be installed and active)
 * Tutor LMS (for LMS integration features)
 
 == Installation ==
 
-1. Install and activate **MC-EMS Base** (free, required dependency) from the WordPress Plugin Repository.
+1. Install and activate **MC-EMS – Exam Center for Tutor LMS** (free, required dependency).
 2. Download the MC-EMS Premium plugin ZIP.
 3. Go to **WordPress → Plugins → Add New → Upload Plugin**.
 4. Upload the ZIP and click **Install Now**.
@@ -71,9 +71,9 @@ Superior admin interface with faster filters, bulk booking management, and exten
 
 == Frequently Asked Questions ==
 
-= Can I use MC-EMS Premium without MC-EMS Base? =
+= Can I use MC-EMS Premium without MC-EMS – Exam Center for Tutor LMS? =
 
-No. MC-EMS Base is mandatory. It is the foundation this add-on builds upon.
+No. MC-EMS – Exam Center for Tutor LMS is mandatory. It is the foundation this add-on builds upon.
 
 = Does Premium replace the Base plugin? =
 
@@ -81,10 +81,10 @@ No. Premium integrates seamlessly alongside the Base plugin and removes its limi
 
 = Will upgrading lose my data? =
 
-No. MC-EMS Premium is fully backward-compatible with existing Base settings and data.
+No. MC-EMS Premium is fully compatible with existing Base settings and data.
 
 == Changelog ==
 
 = 2.2.6.4 =
 * Optimized plugin header for WordPress Repository publication.
-* Added Requires Plugins dependency declaration for MC-EMS Base.
+* Updated dependency declaration for MC-EMS – Exam Center for Tutor LMS.

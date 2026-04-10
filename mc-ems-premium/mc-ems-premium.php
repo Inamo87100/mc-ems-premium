@@ -2,7 +2,7 @@
 /*
 Plugin Name: MC-EMS Premium – Add-on for Exam Session Management
 Plugin URI: https://github.com/Inamo87100/mc-ems-premium
-Description: Premium add-on for MC-EMS Base. Removes limits and adds advanced exam booking features: unlimited exam sessions, up to 500 seats per session, advanced booking search with date-range filters, bulk management, and optimized CSV export. Requires MC-EMS – Exam Session Management (Base) plugin.
+Description: Premium add-on for MC-EMS – Exam Center for Tutor LMS. Removes limits and adds advanced exam booking features: unlimited exam sessions, up to 500 seats per session, advanced booking search with date-range filters, bulk management, and optimized CSV export. Requires MC-EMS – Exam Center for Tutor LMS (Base) plugin.
 Version: 2.2.6.4-premium
 Requires at least: 5.0
 Requires PHP: 7.0
@@ -12,7 +12,7 @@ License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: mc-ems
 Domain Path: /languages
-Requires Plugins: mc-ems-base
+Requires Plugins: mc-ems-exam-center-for-tutor-lms
 */
 
 if (!defined('ABSPATH')) exit;
@@ -50,15 +50,15 @@ final class EMS_Premium_Bootstrap {
     }
 
     public static function base_active(): bool {
-        // Base defines MCEMS_VERSION and provides these classes.
-        return defined('MCEMS_VERSION') && class_exists('MCEMS_Settings') && class_exists('MCEMS_CPT_Sessioni_Esame');
+        // Base defines MCEMEXCE_VERSION and provides these classes.
+        return defined('MCEMEXCE_VERSION') && class_exists('MCEMEXCE_Settings') && class_exists('MCEMEXCE_CPT_Sessioni_Esame');
     }
 
     public static function notice_missing_base(): void {
         if (!current_user_can('activate_plugins')) return;
         if (self::base_active()) return;
 
-        echo '<div class="notice notice-error"><p><strong>EMS Premium</strong> richiede il plugin <strong>EMS – Exam Management System (Base)</strong> attivo.</p></div>';
+        echo '<div class="notice notice-error"><p><strong>MC-EMS Premium</strong> richiede il plugin <strong>MC-EMS – Exam Center for Tutor LMS</strong> attivo.</p></div>';
     }
 
     public static function boot(): void {
