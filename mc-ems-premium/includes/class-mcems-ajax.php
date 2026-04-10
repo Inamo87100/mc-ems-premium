@@ -92,7 +92,7 @@ class MCEMS_Premium_Ajax {
 
     /**
      * AJAX: ricerca utenti con supporto per tipo (proctor / candidate / associated_candidate).
-     * Per i proctor applica il filtro dei ruoli consentiti da MCEMS_Settings::get_proctor_roles().
+     * Per i proctor applica il filtro dei ruoli consentiti da MCEMEXCE_Settings::get_proctor_roles().
      * Risponde con un array JSON di { id, display_name, first_name, last_name, email, roles }.
      */
     public static function search_users(): void {
@@ -123,8 +123,8 @@ class MCEMS_Premium_Ajax {
         // When searching for proctors, restrict to allowed roles if configured.
         $role_filter = [];
         if ( 'proctor' === $search_for ) {
-            $proctor_roles = method_exists( 'MCEMS_Settings', 'get_proctor_roles' )
-                ? MCEMS_Settings::get_proctor_roles()
+            $proctor_roles = method_exists( 'MCEMEXCE_Settings', 'get_proctor_roles' )
+                ? MCEMEXCE_Settings::get_proctor_roles()
                 : [];
 
             if ( ! empty( $proctor_roles ) ) {

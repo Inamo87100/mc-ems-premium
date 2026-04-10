@@ -92,7 +92,7 @@ class MCEMS_Bookings_List {
 
 
     private static function can_view(): bool {
-        $cap = MCEMS_Settings::get_str('cap_view_bookings');
+        $cap = MCEMEXCE_Settings::get_str('cap_view_bookings');
         if (!$cap) $cap = 'manage_options';
         return current_user_can($cap) || current_user_can('manage_options');
     }
@@ -145,13 +145,13 @@ class MCEMS_Bookings_List {
         $meta = [];
         if (($filter['type'] ?? '') === 'single' && !empty($filter['date'])) {
             $meta[] = [
-                'key'     => MCEMS_CPT_Sessioni_Esame::MK_DATE,
+                'key'     => MCEMEXCE_CPT_Sessioni_Esame::MK_DATE,
                 'value'   => (string) $filter['date'],
                 'compare' => '=',
             ];
         } elseif (($filter['type'] ?? '') === 'range' && !empty($filter['from']) && !empty($filter['to'])) {
             $meta[] = [
-                'key'     => MCEMS_CPT_Sessioni_Esame::MK_DATE,
+                'key'     => MCEMEXCE_CPT_Sessioni_Esame::MK_DATE,
                 'value'   => [(string) $filter['from'], (string) $filter['to']],
                 'compare' => 'BETWEEN',
                 'type'    => 'DATE',
@@ -159,36 +159,36 @@ class MCEMS_Bookings_List {
         }
         if ($selected_course > 0) {
             $meta[] = [
-                'key'     => MCEMS_CPT_Sessioni_Esame::MK_COURSE_ID,
+                'key'     => MCEMEXCE_CPT_Sessioni_Esame::MK_COURSE_ID,
                 'value'   => $selected_course,
                 'compare' => '=',
             ];
         }
 
         $session_ids = get_posts([
-            'post_type'      => MCEMS_CPT_Sessioni_Esame::CPT,
+            'post_type'      => MCEMEXCE_CPT_Sessioni_Esame::CPT,
             'post_status'    => 'publish',
             'posts_per_page' => -1,
             'fields'         => 'ids',
             'meta_query'     => $meta,
             'orderby'        => 'meta_value',
-            'meta_key'       => MCEMS_CPT_Sessioni_Esame::MK_TIME,
+            'meta_key'       => MCEMEXCE_CPT_Sessioni_Esame::MK_TIME,
             'order'          => 'ASC',
         ]);
 
         $rows = [];
         foreach ($session_ids as $sid) {
             $sid = (int) $sid;
-            $date = (string) get_post_meta($sid, MCEMS_CPT_Sessioni_Esame::MK_DATE, true);
-            $time = (string) get_post_meta($sid, MCEMS_CPT_Sessioni_Esame::MK_TIME, true);
-            $course_id = (int) get_post_meta($sid, MCEMS_CPT_Sessioni_Esame::MK_COURSE_ID, true);
+            $date = (string) get_post_meta($sid, MCEMEXCE_CPT_Sessioni_Esame::MK_DATE, true);
+            $time = (string) get_post_meta($sid, MCEMEXCE_CPT_Sessioni_Esame::MK_TIME, true);
+            $course_id = (int) get_post_meta($sid, MCEMEXCE_CPT_Sessioni_Esame::MK_COURSE_ID, true);
 
-            $occ = get_post_meta($sid, MCEMS_CPT_Sessioni_Esame::MK_OCCUPATI, true);
+            $occ = get_post_meta($sid, MCEMEXCE_CPT_Sessioni_Esame::MK_OCCUPATI, true);
             if (!is_array($occ) || empty($occ)) continue;
 
-            $is_special = ((int) get_post_meta($sid, MCEMS_CPT_Sessioni_Esame::MK_IS_SPECIAL, true) === 1);
+            $is_special = ((int) get_post_meta($sid, MCEMEXCE_CPT_Sessioni_Esame::MK_IS_SPECIAL, true) === 1);
 
-            $proctor_id = (int) get_post_meta($sid, MCEMS_CPT_Sessioni_Esame::MK_PROCTOR_USER_ID, true);
+            $proctor_id = (int) get_post_meta($sid, MCEMEXCE_CPT_Sessioni_Esame::MK_PROCTOR_USER_ID, true);
             $proctor = $proctor_id ? get_user_by('id', $proctor_id) : null;
             $proctor_label = $proctor ? $proctor->display_name : '—';
 
@@ -279,7 +279,7 @@ ob_start();
 
 
                 <form method="get" class="mcems-filters">
-                    <input type="hidden" name="post_type" value="<?php echo esc_attr(MCEMS_CPT_Sessioni_Esame::CPT); ?>">
+                    <input type="hidden" name="post_type" value="<?php echo esc_attr(MCEMEXCE_CPT_Sessioni_Esame::CPT); ?>">
                     <?php
                     // Preserve "page" if inside admin, but shortcode may be used anywhere.
                     if (isset($_GET['page'])) {

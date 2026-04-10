@@ -88,7 +88,7 @@ class MCEMS_License_Page {
     /**
      * Display a persistent admin notice on ALL admin pages when the license is
      * not valid.  The notice is only shown to administrators and only when the
-     * MC-EMS Base plugin is active (otherwise the "missing base" notice takes
+     * MC-EMS – Exam Center for Tutor LMS plugin is active (otherwise the "missing base" notice takes
      * priority).
      *
      * Note: this method never blocks the site or the free plugin – it only
@@ -101,7 +101,7 @@ class MCEMS_License_Page {
 
         // Only show license notice when the base plugin is active; the
         // "missing base" notice (registered separately) takes priority otherwise.
-        if ( ! ( defined( 'MCEMS_VERSION' ) && class_exists( 'MCEMS_Settings' ) ) ) {
+        if ( ! ( defined( 'MCEMEXCE_VERSION' ) && class_exists( 'MCEMEXCE_Settings' ) ) ) {
             return;
         }
 

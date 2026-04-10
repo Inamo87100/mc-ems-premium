@@ -1,8 +1,8 @@
 # MC-EMS Premium – Advanced Exam Management Add-on for Tutor LMS
 
-**MC-EMS Premium** is a premium add-on for **[MC-EMS – Exam Session Management](https://github.com/Inamo87100/mc-ems-base)** (Base). It extends the free base plugin with unlimited exam sessions, advanced exam booking management, and enhanced certification workflows — ideal for elearning platforms, certification bodies, and universities running large-scale exam scheduling with Tutor LMS.
+**MC-EMS Premium** is a premium add-on for **[MC-EMS – Exam Center for Tutor LMS](https://github.com/Inamo87100/mc-ems-exam-center-for-tutor-lms)** (Base). It extends the free base plugin with unlimited exam sessions, advanced exam booking management, and enhanced certification workflows — ideal for elearning platforms, certification bodies, and universities running large-scale exam scheduling with Tutor LMS.
 
-> ⚠️ **Requires MC-EMS Base** (free plugin) to be installed and active. This add-on cannot run standalone.
+> ⚠️ **Requires MC-EMS – Exam Center for Tutor LMS** (free plugin) to be installed and active. This add-on cannot run standalone.
 
 ## What does Premium add?
 
@@ -79,12 +79,12 @@ Premium significantly improves the exam-booking list:
 
 - **WordPress**: 6.0 or higher
 - **PHP**: 7.0 or higher
-- **MC-EMS Base**: Required (must be installed and active) — [Download free from WordPress.org](https://wordpress.org/plugins/mc-ems-base/)
+- **MC-EMS – Exam Center for Tutor LMS**: Required (must be installed and active)
 - **Tutor LMS**: For LMS integration features
 
 ## Installation
 
-1. Install and activate **MC-EMS Base** (free, required dependency)
+1. Install and activate **MC-EMS – Exam Center for Tutor LMS** (free, required dependency)
 2. Download the MC-EMS Premium plugin ZIP
 3. Go to **WordPress → Plugins → Add New → Upload Plugin**
 4. Upload the ZIP and click **Install Now**
@@ -95,7 +95,7 @@ Premium significantly improves the exam-booking list:
 
 MC-EMS Premium is a true add-on plugin:
 - **Does not replace** the Base plugin
-- **Integrates seamlessly** with MC-EMS Base
+- **Integrates seamlessly** with MC-EMS – Exam Center for Tutor LMS
 - **Removes all limits** from the Base version
 - **Maintains full compatibility** with Base settings and data
 
@@ -108,13 +108,13 @@ When Premium is active:
 ## Version
 
 - **MC-EMS Premium**: 2.2.6.4
-- **Requires MC-EMS Base**: 2.4.2 or higher
+- **Requires MC-EMS – Exam Center for Tutor LMS**: 1.0.0 or higher
 
 ## Important Notes
 
-- ⚠️ **MC-EMS Base is required** for Premium to function
+- ⚠️ **MC-EMS – Exam Center for Tutor LMS is required** for Premium to function
 - ✅ Premium removes ALL limits from the Base version
-- ✅ Backward-compatible with existing Base settings
+- ✅ Compatible with existing Base settings
 - ✅ No data loss during upgrade
 
 ## Ideal For

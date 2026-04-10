@@ -24,7 +24,7 @@ We are committed to providing a welcoming and inclusive environment for all cont
 ### Requirements
 - WordPress 5.0+
 - PHP 7.4+
-- MC-EMS Base plugin
+- MC-EMS – Exam Center for Tutor LMS plugin
 
 ### Local Development
 ```bash
@@ -89,7 +89,7 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 2. Include:
    - WordPress version
    - PHP version
-   - MC-EMS Base version
+   - MC-EMS – Exam Center for Tutor LMS version
    - Step-by-step reproduction
    - Expected vs actual behavior
    - Screenshot if applicable

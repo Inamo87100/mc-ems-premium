@@ -6,7 +6,7 @@
 - **WordPress:** 5.0 o superiore
 - **PHP:** 7.0 o superiore
 - **MySQL:** 5.6 o superiore
-- **MC-EMS Base:** 2.0 o superiore (OBBLIGATORIO)
+- **MC-EMS – Exam Center for Tutor LMS:** 1.0.0 o superiore (OBBLIGATORIO)
 
 ### Requisiti Consigliati
 - **WordPress:** 6.0 o superiore
@@ -27,9 +27,9 @@
 
 Prima di installare MC-EMS Premium, assicurati che:
 
-1. ✅ MC-EMS Base sia installato e attivo
+1. ✅ MC-EMS – Exam Center for Tutor LMS sia installato e attivo
    ```
-   WordPress → Plugin → Plugins installati → Cerca "MC-EMS Base"
+   WordPress → Plugin → Plugins installati → Cerca "MC-EMS – Exam Center for Tutor LMS"
    ```
 
 2. ✅ WordPress sia aggiornato almeno alla versione 5.0
@@ -237,17 +237,17 @@ Esporta grafici: Click destro → Salva immagine
 
 ## Troubleshooting
 
-### Problema 1: "MC-EMS Base non trovato"
+### Problema 1: "MC-EMS – Exam Center for Tutor LMS non trovato"
 
 **Errore:**
 ```
-Il plugin MC-EMS Base non è installato o attivo
+Il plugin MC-EMS – Exam Center for Tutor LMS non è installato o attivo
 ```
 
 **Soluzione:**
 ```
 1. Vai a WordPress → Plugin → Plugins installati
-2. Cerca "MC-EMS Base"
+2. Cerca "MC-EMS – Exam Center for Tutor LMS"
 3. Se non trovato, installalo da WordPress.org
 4. Attiva il plugin
 5. Torna a MC-EMS Premium e attivalo
@@ -400,8 +400,8 @@ Cerca "MC-EMS Premium" → Se disponibile, clicca "Aggiorna"
 
 ## FAQ
 
-### D: Posso usare MC-EMS Premium senza MC-EMS Base?
-**R:** No, MC-EMS Base è obbligatorio. È il fondamento del plugin.
+### D: Posso usare MC-EMS Premium senza MC-EMS – Exam Center for Tutor LMS?
+**R:** No, MC-EMS – Exam Center for Tutor LMS è obbligatorio. È il fondamento del plugin.
 
 ### D: Quanto costa MC-EMS Premium?
 **R:** Visita https://mambacoding.com/prezzi per i dettagli di prezzo.
