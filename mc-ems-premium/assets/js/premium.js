@@ -590,6 +590,153 @@
   // MODAL DIALOGS
   // ========================================
 
+  /**
+   * Multi-Schedule Widget
+   *
+   * Replaces the single time input (#mcemexce_time_input / name="mcemexce_time")
+   * in the session CPT edit screen with a repeater widget that supports multiple
+   * time slots per session day.
+   *
+   * Requires the mcemsMultiSchedule object (localised by MCEMS_Multi_Schedule::enqueue_assets()):
+   *   {
+   *     times:         string[],  // existing H:i values (may be empty on new post)
+   *     baseField:     string,    // original input name expected by the base plugin
+   *     addLabel:      string,    // i18n button label
+   *     removeLabel:   string,    // i18n remove button label
+   *     minOneMessage: string,    // i18n message shown when last entry is removed
+   *   }
+   */
+  const MCEMSMultiSchedule = {
+
+    /** Counter used to produce unique DOM element IDs for label/input pairs. */
+    _entryCounter: 0,
+
+    init: function() {
+      if ( typeof mcemsMultiSchedule === 'undefined' ) { return; }
+
+      this.$original = $( '#mcemexce_time_input' );
+      if ( ! this.$original.length ) { return; }
+
+      this.config = mcemsMultiSchedule;
+      this.times  = ( this.config.times && this.config.times.length )
+        ? this.config.times
+        : [ this.$original.val() || '' ];
+
+      this._buildWidget();
+      this._renderTimes();
+    },
+
+    // ------------------------------------------------------------------
+    // Build the widget DOM and insert it next to the original input row.
+    // ------------------------------------------------------------------
+    _buildWidget: function() {
+      const self = this;
+
+      // Change the original input to a hidden field and give it a neutral id
+      // to avoid duplicate-id issues.  Its value is kept in sync with the
+      // first entry in the widget so the base plugin's save logic still works.
+      this.$original
+        .attr( 'type', 'hidden' )
+        .attr( 'id', 'mcemexce_time_input_hidden' )
+        .attr( 'aria-hidden', 'true' );
+
+      // Build container
+      this.$widget   = $( '<div>', { 'class': 'mcems-multi-schedule-widget', role: 'group',
+                                     'aria-label': this.config.addLabel } );
+      this.$timeList = $( '<div>', { 'class': 'mcems-schedule-time-list' } );
+      this.$addBtn   = $( '<button>', {
+        type:    'button',
+        'class': 'button mcems-add-time-btn',
+        text:    '+ ' + this.config.addLabel
+      } );
+
+      this.$widget.append( this.$timeList ).append( this.$addBtn );
+
+      // Insert the widget immediately after the original input inside its
+      // parent label/td so it stays within the existing meta-box table row.
+      this.$original.after( this.$widget );
+
+      // Events (delegated to widget root for dynamically added entries)
+      this.$widget.on( 'click', '.mcems-remove-time-btn', function() {
+        if ( self.$timeList.find( '.mcems-schedule-time-entry' ).length <= 1 ) {
+          // At least one slot required
+          return;
+        }
+        $( this ).closest( '.mcems-schedule-time-entry' ).remove();
+        self._syncPrimary();
+      } );
+
+      this.$widget.on( 'change input', '.mcems-time-input', function() {
+        self._syncPrimary();
+      } );
+
+      this.$addBtn.on( 'click', function() {
+        self._addEntry( '' );
+      } );
+    },
+
+    // ------------------------------------------------------------------
+    // Render existing times into the widget on init.
+    // ------------------------------------------------------------------
+    _renderTimes: function() {
+      const self = this;
+      this.$timeList.empty();
+
+      if ( ! this.times || ! this.times.length ) {
+        this._addEntry( '' );
+      } else {
+        this.times.forEach( function( t ) {
+          self._addEntry( t );
+        } );
+      }
+
+      this._syncPrimary();
+    },
+
+    // ------------------------------------------------------------------
+    // Add a single time entry row.
+    // ------------------------------------------------------------------
+    _addEntry: function( value ) {
+      var uid = 'mcems-time-' + ( ++this._entryCounter );
+
+      var $entry     = $( '<div>',    { 'class': 'mcems-schedule-time-entry' } );
+      var $label     = $( '<label>',  { 'for': uid, 'class': 'screen-reader-text',
+                                        text: this.config.addLabel } );
+      var $input     = $( '<input>',  {
+        type:        'time',
+        id:          uid,
+        name:        'mcems_schedule_times[]',
+        'class':     'mcems-time-input'
+      } );
+      if ( value ) { $input.val( value ); }
+
+      var $removeBtn = $( '<button>', {
+        type:         'button',
+        'class':      'button-link mcems-remove-time-btn',
+        'aria-label': this.config.removeLabel,
+        text:         '×'
+      } );
+
+      $entry.append( $label ).append( $input ).append( $removeBtn );
+      this.$timeList.append( $entry );
+    },
+
+    // ------------------------------------------------------------------
+    // Mirror the first time entry to the original hidden field so the
+    // base plugin's save handler reads the correct primary time.
+    // ------------------------------------------------------------------
+    _syncPrimary: function() {
+      var $first = this.$timeList.find( '.mcems-time-input' ).first();
+      if ( $first.length ) {
+        this.$original.val( $first.val() );
+      }
+    }
+  };
+
+  // ========================================
+  // MODAL DIALOGS (kept separate)
+  // ========================================
+
   const MCEMSModal = {
     open: function(modalId) {
       $(`#${modalId}`).addClass('active');
@@ -644,6 +791,8 @@
 
     MCEMSSessionEdit.init();
 
+    MCEMSMultiSchedule.init();
+
     MCEMSModal.init();
   });
 
@@ -652,6 +801,7 @@
     BookingsList:       MCEMSPremiumBookingsList,
     SpecialSessions:    MCEMSSpecialSessions,
     SessionEdit:        MCEMSSessionEdit,
+    MultiSchedule:      MCEMSMultiSchedule,
     UserSearchSelector: MCEMSUserSearchSelector,
     Modal:              MCEMSModal
   };

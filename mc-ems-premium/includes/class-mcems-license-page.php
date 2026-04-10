@@ -96,8 +96,8 @@ class MCEMS_License_Page {
 
         add_submenu_page(
             /* $parent_slug */ 'edit.php?post_type=' . self::BASE_CPT,
-            /* $page_title  */ __( 'MC-EMS Premium License', 'mc-ems' ),
-            /* $menu_title  */ __( 'Premium License', 'mc-ems' ),
+            /* $page_title  */ __( 'MC-EMS License', 'mc-ems' ),
+            /* $menu_title  */ __( 'License', 'mc-ems' ),
             /* $capability  */ 'manage_options',
             /* $menu_slug   */ self::PAGE_SLUG,
             /* $callback    */ [ __CLASS__, 'render_page' ]
@@ -280,11 +280,13 @@ class MCEMS_License_Page {
             return;
         }
 
-        $current_key = (string) get_option( MCEMS_License::OPTION_KEY, '' );
-        $status      = MCEMS_License::get_cached_status();
-        $valid       = isset( $status['valid'] ) && true === $status['valid'];
-        $api_status  = isset( $status['status'] ) ? (string) $status['status'] : '';
-        $checked_at  = isset( $status['checked_at'] ) ? (int) $status['checked_at'] : 0;
+        $current_key  = (string) get_option( MCEMS_License::OPTION_KEY, '' );
+        $status       = MCEMS_License::get_cached_status();
+        $valid        = isset( $status['valid'] ) && true === $status['valid'];
+        $api_status   = isset( $status['status'] ) ? (string) $status['status'] : '';
+        $checked_at   = isset( $status['checked_at'] ) ? (int) $status['checked_at'] : 0;
+        $expires_at   = isset( $status['expires_at'] ) ? (int) $status['expires_at'] : 0;
+        $activated_at = isset( $status['activated_at'] ) ? (int) $status['activated_at'] : 0;
 
         // Build the date/time format used by WordPress for the site locale.
         $date_format = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
@@ -292,7 +294,7 @@ class MCEMS_License_Page {
         ?>
         <div class="wrap">
 
-            <h1><?php esc_html_e( 'MC-EMS Premium License', 'mc-ems' ); ?></h1>
+            <h1><?php esc_html_e( 'License', 'mc-ems' ); ?></h1>
 
             <?php
             // Success notice: license key saved and verified.
@@ -350,85 +352,70 @@ class MCEMS_License_Page {
                 <?php endif; ?>
 
                 <?php if ( '' !== $current_key ) : ?>
-                    <p style="color:#555;font-size:0.9em;margin-top:4px;">
-                        <?php
-                        printf(
-                            /* translators: %s: partially masked license key */
-                            esc_html__( 'License key: %s', 'mc-ems' ),
-                            '<code>' . esc_html( self::mask_key( $current_key ) ) . '</code>'
-                        );
-                        ?>
-                    </p>
-                <?php endif; ?>
+                    <?php /* ---- LICENSE IS SET: show masked key, dates, and Remove button ---- */ ?>
 
-                <?php if ( $checked_at > 0 ) : ?>
-                    <p style="color:#555;font-size:0.9em;margin-top:4px;">
-                        <?php
-                        printf(
-                            /* translators: %s: date and time of the last license verification */
-                            esc_html__( 'Last verified: %s', 'mc-ems' ),
-                            esc_html( date_i18n( $date_format, $checked_at ) )
-                        );
-                        ?>
-                    </p>
-                <?php endif; ?>
-
-                <hr style="margin:20px 0;">
-
-                <h2><?php esc_html_e( 'Enter / Update License Key', 'mc-ems' ); ?></h2>
-
-                <form method="post" action="">
-                    <?php wp_nonce_field( 'mcems_license_action', 'mcems_license_nonce' ); ?>
-
-                    <table class="form-table" role="presentation">
+                    <table class="form-table" role="presentation" style="margin-top:0;">
                         <tr>
-                            <th scope="row">
-                                <label for="mcems_license_key">
-                                    <?php esc_html_e( 'License Key', 'mc-ems' ); ?>
-                                </label>
+                            <th scope="row" style="padding-left:0;">
+                                <?php esc_html_e( 'License Key', 'mc-ems' ); ?>
                             </th>
                             <td>
-                                <input
-                                    type="text"
-                                    id="mcems_license_key"
-                                    name="mcems_license_key"
-                                    value="<?php echo esc_attr( $current_key ); ?>"
-                                    class="regular-text"
-                                    autocomplete="off"
-                                    placeholder="MC-XXXXX-XXXXX-XXXXX"
-                                >
-                                <p class="description">
-                                    <?php esc_html_e( 'Enter the license key you received when purchasing MC-EMS Premium.', 'mc-ems' ); ?>
-                                </p>
+                                <code><?php echo esc_html( self::mask_key( $current_key ) ); ?></code>
                             </td>
                         </tr>
+
+                        <?php if ( $activated_at > 0 ) : ?>
+                        <tr>
+                            <th scope="row" style="padding-left:0;">
+                                <?php esc_html_e( 'Activated', 'mc-ems' ); ?>
+                            </th>
+                            <td>
+                                <?php echo esc_html( date_i18n( $date_format, $activated_at ) ); ?>
+                            </td>
+                        </tr>
+                        <?php elseif ( $checked_at > 0 ) : ?>
+                        <?php
+                        /*
+                         * 'Last Verified' is a fallback shown only when the API response does
+                         * not include an 'activated_at' timestamp (e.g. older API versions or
+                         * licenses that pre-date the field).  It gives the administrator some
+                         * indication of when the key was last confirmed as valid, even if the
+                         * exact activation date is unknown.
+                         */
+                        ?>
+                        <tr>
+                            <th scope="row" style="padding-left:0;">
+                                <?php esc_html_e( 'Last Verified', 'mc-ems' ); ?>
+                            </th>
+                            <td>
+                                <?php echo esc_html( date_i18n( $date_format, $checked_at ) ); ?>
+                            </td>
+                        </tr>
+                        <?php endif; ?>
+
+                        <?php if ( $expires_at > 0 ) : ?>
+                        <tr>
+                            <th scope="row" style="padding-left:0;">
+                                <?php esc_html_e( 'Expires', 'mc-ems' ); ?>
+                            </th>
+                            <td>
+                                <?php
+                                echo esc_html( date_i18n( get_option( 'date_format' ), $expires_at ) );
+                                if ( $expires_at < time() ) {
+                                    ?>
+                                    <span style="color:#c62828;font-weight:bold;">(<?php esc_html_e( 'expired', 'mc-ems' ); ?>)</span>
+                                    <?php
+                                }
+                                ?>
+                            </td>
+                        </tr>
+                        <?php endif; ?>
                     </table>
 
-                    <?php
-                    submit_button(
-                        __( 'Save and Verify', 'mc-ems' ),
-                        'primary',
-                        'mcems_license_save'
-                    );
-                    ?>
-                </form>
-
-                <?php if ( '' !== $current_key ) : ?>
                     <hr style="margin:20px 0;">
-
-                    <h2><?php esc_html_e( 'Deactivate License', 'mc-ems' ); ?></h2>
-                    <p><?php esc_html_e( 'Removing the license key will deactivate all premium features on this site. You can re-enter the key at any time to reactivate.', 'mc-ems' ); ?></p>
 
                     <form method="post" action="">
                         <?php wp_nonce_field( 'mcems_license_action', 'mcems_license_nonce' ); ?>
-                        <?php
-                        /*
-                         * The onclick confirmation uses wp.i18n when available, with a plain
-                         * JS string as the fallback, so the dialog text is always in the
-                         * WordPress admin language. The confirm() return value prevents the
-                         * form from being submitted if the user cancels.
-                         */
-                        ?>
                         <button
                             type="submit"
                             name="mcems_license_deactivate"
@@ -438,7 +425,52 @@ class MCEMS_License_Page {
                         >
                             <?php esc_html_e( 'Remove License Key', 'mc-ems' ); ?>
                         </button>
+                        <p class="description" style="margin-top:8px;">
+                            <?php esc_html_e( 'Removing the license key will deactivate all premium features on this site. You can re-enter the key at any time to reactivate.', 'mc-ems' ); ?>
+                        </p>
                     </form>
+
+                <?php else : ?>
+                    <?php /* ---- NO KEY: show the entry form ---- */ ?>
+
+                    <hr style="margin:20px 0;">
+
+                    <form method="post" action="">
+                        <?php wp_nonce_field( 'mcems_license_action', 'mcems_license_nonce' ); ?>
+
+                        <table class="form-table" role="presentation">
+                            <tr>
+                                <th scope="row">
+                                    <label for="mcems_license_key">
+                                        <?php esc_html_e( 'License Key', 'mc-ems' ); ?>
+                                    </label>
+                                </th>
+                                <td>
+                                    <input
+                                        type="text"
+                                        id="mcems_license_key"
+                                        name="mcems_license_key"
+                                        value=""
+                                        class="regular-text"
+                                        autocomplete="off"
+                                        placeholder="MC-XXXXX-XXXXX-XXXXX"
+                                    >
+                                    <p class="description">
+                                        <?php esc_html_e( 'Enter the license key you received when purchasing MC-EMS Premium.', 'mc-ems' ); ?>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <?php
+                        submit_button(
+                            __( 'Save and Verify', 'mc-ems' ),
+                            'primary',
+                            'mcems_license_save'
+                        );
+                        ?>
+                    </form>
+
                 <?php endif; ?>
 
             </div><!-- /.card -->

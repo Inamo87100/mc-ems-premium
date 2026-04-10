@@ -697,3 +697,63 @@ canvas {
   opacity: 0.6;
   pointer-events: none;
 }
+
+/* ========================================
+   MULTI-SCHEDULE WIDGET (Admin Session Edit)
+   ======================================== */
+
+.mcems-multi-schedule-widget {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.mcems-schedule-time-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.mcems-schedule-time-entry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mcems-schedule-time-entry .mcems-time-input {
+  /* Match WordPress admin input sizing */
+  height: 30px;
+  padding: 0 8px;
+  font-size: 14px;
+  border: 1px solid #8c8f94;
+  border-radius: 3px;
+  background: #fff;
+  color: #2c3338;
+  box-shadow: 0 0 0 transparent;
+  transition: box-shadow .1s linear;
+}
+
+.mcems-schedule-time-entry .mcems-time-input:focus {
+  border-color: #2271b1;
+  box-shadow: 0 0 0 1px #2271b1;
+  outline: 2px solid transparent;
+}
+
+.mcems-remove-time-btn {
+  padding: 0 4px;
+  font-size: 18px;
+  line-height: 1;
+  color: #b32d2e;
+  background: none;
+  border: none;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.mcems-remove-time-btn:hover {
+  color: #8a0000;
+}
+
+.mcems-add-time-btn {
+  margin-top: 2px;
+}
