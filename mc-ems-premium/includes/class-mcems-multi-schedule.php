@@ -118,6 +118,10 @@ class MCEMS_Multi_Schedule {
         wp_localize_script( 'mcems-premium-js', 'mcemsMultiSchedule', [
             'times'         => array_values( $times ),
             'baseField'     => self::BASE_TIME_FIELD,
+            /* translators: accessible label for the group of session time slots */
+            'groupLabel'    => __( 'Session times', 'mc-ems' ),
+            /* translators: accessible label prefix for a single time-slot input; %d is replaced with the slot number */
+            'timeLabel'     => __( 'Time slot', 'mc-ems' ),
             /* translators: button label to add a new time slot in the multi-schedule widget */
             'addLabel'      => __( 'Add time slot', 'mc-ems' ),
             /* translators: button label to remove a time slot from the multi-schedule widget */

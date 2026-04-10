@@ -640,17 +640,26 @@
         .attr( 'id', 'mcemexce_time_input_hidden' )
         .attr( 'aria-hidden', 'true' );
 
-      // Build container
+      // Build container – aria-label describes the whole group of time slots.
       this.$widget   = $( '<div>', { 'class': 'mcems-multi-schedule-widget', role: 'group',
-                                     'aria-label': this.config.addLabel } );
+                                     'aria-label': this.config.groupLabel || this.config.addLabel } );
       this.$timeList = $( '<div>', { 'class': 'mcems-schedule-time-list' } );
+
+      // Accessible live region for validation messages (e.g. "at least one slot required").
+      this.$notice   = $( '<p>', {
+        'class':     'mcems-schedule-notice',
+        role:        'alert',
+        'aria-live': 'polite',
+        style:       'color:#c62828;margin:.4em 0 0;display:none;'
+      } );
+
       this.$addBtn   = $( '<button>', {
         type:    'button',
         'class': 'button mcems-add-time-btn',
         text:    '+ ' + this.config.addLabel
       } );
 
-      this.$widget.append( this.$timeList ).append( this.$addBtn );
+      this.$widget.append( this.$timeList ).append( this.$notice ).append( this.$addBtn );
 
       // Insert the widget immediately after the original input inside its
       // parent label/td so it stays within the existing meta-box table row.
@@ -659,18 +668,22 @@
       // Events (delegated to widget root for dynamically added entries)
       this.$widget.on( 'click', '.mcems-remove-time-btn', function() {
         if ( self.$timeList.find( '.mcems-schedule-time-entry' ).length <= 1 ) {
-          // At least one slot required
+          // At least one slot required – show accessible error.
+          self.$notice.text( self.config.minOneMessage ).show();
           return;
         }
+        self.$notice.hide();
         $( this ).closest( '.mcems-schedule-time-entry' ).remove();
         self._syncPrimary();
       } );
 
       this.$widget.on( 'change input', '.mcems-time-input', function() {
+        self.$notice.hide();
         self._syncPrimary();
       } );
 
       this.$addBtn.on( 'click', function() {
+        self.$notice.hide();
         self._addEntry( '' );
       } );
     },
@@ -697,16 +710,19 @@
     // Add a single time entry row.
     // ------------------------------------------------------------------
     _addEntry: function( value ) {
-      var uid = 'mcems-time-' + ( ++this._entryCounter );
+      var uid        = 'mcems-time-' + ( ++this._entryCounter );
+      var labelText  = ( this.config.timeLabel || 'Time slot' ) + ' ' + this._entryCounter;
 
       var $entry     = $( '<div>',    { 'class': 'mcems-schedule-time-entry' } );
       var $label     = $( '<label>',  { 'for': uid, 'class': 'screen-reader-text',
-                                        text: this.config.addLabel } );
+                                        text: labelText } );
       var $input     = $( '<input>',  {
         type:        'time',
         id:          uid,
         name:        'mcems_schedule_times[]',
-        'class':     'mcems-time-input'
+        'class':     'mcems-time-input',
+        min:         '00:00',
+        max:         '23:59'
       } );
       if ( value ) { $input.val( value ); }
 
