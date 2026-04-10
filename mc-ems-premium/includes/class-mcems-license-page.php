@@ -374,6 +374,15 @@ class MCEMS_License_Page {
                             </td>
                         </tr>
                         <?php elseif ( $checked_at > 0 ) : ?>
+                        <?php
+                        /*
+                         * 'Last Verified' is a fallback shown only when the API response does
+                         * not include an 'activated_at' timestamp (e.g. older API versions or
+                         * licenses that pre-date the field).  It gives the administrator some
+                         * indication of when the key was last confirmed as valid, even if the
+                         * exact activation date is unknown.
+                         */
+                        ?>
                         <tr>
                             <th scope="row" style="padding-left:0;">
                                 <?php esc_html_e( 'Last Verified', 'mc-ems' ); ?>

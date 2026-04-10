@@ -608,6 +608,9 @@
    */
   const MCEMSMultiSchedule = {
 
+    /** Counter used to produce unique DOM element IDs for label/input pairs. */
+    _entryCounter: 0,
+
     init: function() {
       if ( typeof mcemsMultiSchedule === 'undefined' ) { return; }
 
@@ -694,7 +697,7 @@
     // Add a single time entry row.
     // ------------------------------------------------------------------
     _addEntry: function( value ) {
-      var uid = 'mcems-time-' + Date.now() + '-' + Math.floor( Math.random() * 1000 );
+      var uid = 'mcems-time-' + ( ++this._entryCounter );
 
       var $entry     = $( '<div>',    { 'class': 'mcems-schedule-time-entry' } );
       var $label     = $( '<label>',  { 'for': uid, 'class': 'screen-reader-text',
