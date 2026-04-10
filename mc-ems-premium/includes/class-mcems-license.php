@@ -200,11 +200,30 @@ class MCEMS_License {
 
         $api_status = isset( $data['status'] ) ? (string) $data['status'] : 'invalid';
 
+        // Parse optional expiration / activation timestamps from the API response.
+        // Accept both Unix timestamps (int) and ISO-8601 / date strings.
+        $expires_at   = 0;
+        $activated_at = 0;
+
+        if ( ! empty( $data['expires_at'] ) ) {
+            $expires_at = is_numeric( $data['expires_at'] )
+                ? (int) $data['expires_at']
+                : (int) strtotime( (string) $data['expires_at'] );
+        }
+
+        if ( ! empty( $data['activated_at'] ) ) {
+            $activated_at = is_numeric( $data['activated_at'] )
+                ? (int) $data['activated_at']
+                : (int) strtotime( (string) $data['activated_at'] );
+        }
+
         return [
-            'valid'      => ( 'valid' === $api_status ),
-            'status'     => $api_status,
-            'message'    => isset( $data['message'] ) ? (string) $data['message'] : '',
-            'checked_at' => time(),
+            'valid'        => ( 'valid' === $api_status ),
+            'status'       => $api_status,
+            'message'      => isset( $data['message'] ) ? (string) $data['message'] : '',
+            'checked_at'   => time(),
+            'expires_at'   => $expires_at,
+            'activated_at' => $activated_at,
         ];
     }
 
