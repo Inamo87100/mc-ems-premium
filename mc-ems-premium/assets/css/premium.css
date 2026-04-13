@@ -699,6 +699,28 @@ canvas {
 }
 
 /* ========================================
+   SESSION TIME TEXTAREA (Create Sessions)
+   ======================================== */
+
+/* Constrain the multi-time textarea to ~320px so it does not stretch across
+   the entire admin page width while still being responsive on narrow screens. */
+#mcems-schedule-times-textarea {
+  width: 320px;
+  max-width: 100%;
+  min-width: 180px;
+  display: block;
+  font-family: monospace;
+}
+
+/* Inline error message displayed below the textarea when a line is invalid. */
+.mcems-time-error {
+  color: #dc3545;
+  font-size: 13px;
+  margin-top: 4px;
+  margin-bottom: 0;
+}
+
+/* ========================================
    MULTI-SCHEDULE WIDGET (Admin Session Edit)
    ======================================== */
 
