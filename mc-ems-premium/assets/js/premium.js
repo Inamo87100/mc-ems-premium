@@ -591,161 +591,62 @@
   // ========================================
 
   /**
-   * Multi-Schedule Widget
+   * Multi-Schedule – Textarea mode
    *
-   * Replaces the single time input (#mcemexce_time_input / name="mcemexce_time")
-   * in the session CPT edit screen with a repeater widget that supports multiple
-   * time slots per session day.
+   * When the premium license is active, the "Session Times" meta box renders a
+   * textarea where the administrator can enter multiple HH:MM times (one per
+   * line).  This module hides the base plugin's single time input row and keeps
+   * the hidden input in sync with the first valid time in the textarea so that
+   * the base plugin's save logic continues to work correctly.
    *
    * Requires the mcemsMultiSchedule object (localised by MCEMS_Multi_Schedule::enqueue_assets()):
    *   {
-   *     times:         string[],  // existing H:i values (may be empty on new post)
-   *     baseField:     string,    // original input name expected by the base plugin
-   *     addLabel:      string,    // i18n button label
-   *     removeLabel:   string,    // i18n remove button label
-   *     minOneMessage: string,    // i18n message shown when last entry is removed
+   *     baseField:   string,  // original input name expected by the base plugin
+   *     textareaId:  string,  // id of the premium textarea
    *   }
    */
   const MCEMSMultiSchedule = {
 
-    /** Counter used to produce unique DOM element IDs for label/input pairs. */
-    _entryCounter: 0,
-
     init: function() {
       if ( typeof mcemsMultiSchedule === 'undefined' ) { return; }
 
-      this.$original = $( '#mcemexce_time_input' );
-      if ( ! this.$original.length ) { return; }
+      var cfg        = mcemsMultiSchedule;
+      var $original  = $( '[name="' + cfg.baseField + '"]' ).first();
+      var $textarea  = $( '#' + cfg.textareaId );
 
-      this.config = mcemsMultiSchedule;
-      this.times  = ( this.config.times && this.config.times.length )
-        ? this.config.times
-        : [ this.$original.val() || '' ];
+      if ( ! $original.length || ! $textarea.length ) { return; }
 
-      this._buildWidget();
-      this._renderTimes();
+      // Hide the base plugin's time input row so only our textarea is shown.
+      $original.closest( 'tr' ).hide();
+      $original.attr( 'type', 'hidden' ).attr( 'aria-hidden', 'true' );
+
+      // Sync on init.
+      this._syncPrimary( $original, $textarea );
+
+      // Keep in sync as the user types in the textarea.
+      $textarea.on( 'input change', function() {
+        MCEMSMultiSchedule._syncPrimary( $original, $textarea );
+      } );
     },
 
-    // ------------------------------------------------------------------
-    // Build the widget DOM and insert it next to the original input row.
-    // ------------------------------------------------------------------
-    _buildWidget: function() {
-      const self = this;
-
-      // Change the original input to a hidden field and give it a neutral id
-      // to avoid duplicate-id issues.  Its value is kept in sync with the
-      // first entry in the widget so the base plugin's save logic still works.
-      this.$original
-        .attr( 'type', 'hidden' )
-        .attr( 'id', 'mcemexce_time_input_hidden' )
-        .attr( 'aria-hidden', 'true' );
-
-      // Build container – aria-label describes the whole group of time slots.
-      this.$widget   = $( '<div>', { 'class': 'mcems-multi-schedule-widget', role: 'group',
-                                     'aria-label': this.config.groupLabel || this.config.addLabel } );
-      this.$timeList = $( '<div>', { 'class': 'mcems-schedule-time-list' } );
-
-      // Accessible live region for validation messages (e.g. "at least one slot required").
-      this.$notice   = $( '<p>', {
-        'class':     'mcems-schedule-notice',
-        role:        'alert',
-        'aria-live': 'polite',
-        style:       'color:#c62828;margin:.4em 0 0;display:none;'
-      } );
-
-      this.$addBtn   = $( '<button>', {
-        type:    'button',
-        'class': 'button mcems-add-time-btn',
-        text:    '+ ' + this.config.addLabel
-      } );
-
-      this.$widget.append( this.$timeList ).append( this.$notice ).append( this.$addBtn );
-
-      // Insert the widget immediately after the original input inside its
-      // parent label/td so it stays within the existing meta-box table row.
-      this.$original.after( this.$widget );
-
-      // Events (delegated to widget root for dynamically added entries)
-      this.$widget.on( 'click', '.mcems-remove-time-btn', function() {
-        if ( self.$timeList.find( '.mcems-schedule-time-entry' ).length <= 1 ) {
-          // At least one slot required – show accessible error.
-          self.$notice.text( self.config.minOneMessage ).show();
-          return;
+    /**
+     * Mirror the first valid HH:MM time from the textarea to the hidden base
+     * input so the base plugin's save handler reads the correct primary time.
+     *
+     * @param {jQuery} $original  The base plugin's hidden time input.
+     * @param {jQuery} $textarea  The premium "Session Times" textarea.
+     */
+    _syncPrimary: function( $original, $textarea ) {
+      var lines = $textarea.val().split( '\n' );
+      var first = '';
+      for ( var i = 0; i < lines.length; i++ ) {
+        var t = lines[ i ].trim();
+        if ( /^([01]\d|2[0-3]):[0-5]\d$/.test( t ) ) {
+          first = t;
+          break;
         }
-        self.$notice.hide();
-        $( this ).closest( '.mcems-schedule-time-entry' ).remove();
-        self._syncPrimary();
-      } );
-
-      this.$widget.on( 'change input', '.mcems-time-input', function() {
-        self.$notice.hide();
-        self._syncPrimary();
-      } );
-
-      this.$addBtn.on( 'click', function() {
-        self.$notice.hide();
-        self._addEntry( '' );
-      } );
-    },
-
-    // ------------------------------------------------------------------
-    // Render existing times into the widget on init.
-    // ------------------------------------------------------------------
-    _renderTimes: function() {
-      const self = this;
-      this.$timeList.empty();
-
-      if ( ! this.times || ! this.times.length ) {
-        this._addEntry( '' );
-      } else {
-        this.times.forEach( function( t ) {
-          self._addEntry( t );
-        } );
       }
-
-      this._syncPrimary();
-    },
-
-    // ------------------------------------------------------------------
-    // Add a single time entry row.
-    // ------------------------------------------------------------------
-    _addEntry: function( value ) {
-      var uid        = 'mcems-time-' + ( ++this._entryCounter );
-      var labelText  = ( this.config.timeLabel || 'Time slot' ) + ' ' + this._entryCounter;
-
-      var $entry     = $( '<div>',    { 'class': 'mcems-schedule-time-entry' } );
-      var $label     = $( '<label>',  { 'for': uid, 'class': 'screen-reader-text',
-                                        text: labelText } );
-      var $input     = $( '<input>',  {
-        type:        'time',
-        id:          uid,
-        name:        'mcems_schedule_times[]',
-        'class':     'mcems-time-input',
-        min:         '00:00',
-        max:         '23:59'
-      } );
-      if ( value ) { $input.val( value ); }
-
-      var $removeBtn = $( '<button>', {
-        type:         'button',
-        'class':      'button-link mcems-remove-time-btn',
-        'aria-label': this.config.removeLabel,
-        text:         '×'
-      } );
-
-      $entry.append( $label ).append( $input ).append( $removeBtn );
-      this.$timeList.append( $entry );
-    },
-
-    // ------------------------------------------------------------------
-    // Mirror the first time entry to the original hidden field so the
-    // base plugin's save handler reads the correct primary time.
-    // ------------------------------------------------------------------
-    _syncPrimary: function() {
-      var $first = this.$timeList.find( '.mcems-time-input' ).first();
-      if ( $first.length ) {
-        this.$original.val( $first.val() );
-      }
+      $original.val( first );
     }
   };
 

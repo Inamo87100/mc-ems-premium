@@ -288,8 +288,8 @@ class MCEMS_License_Page {
         $expires_at   = isset( $status['expires_at'] ) ? (int) $status['expires_at'] : 0;
         $activated_at = isset( $status['activated_at'] ) ? (int) $status['activated_at'] : 0;
 
-        // Build the date/time format used by WordPress for the site locale.
-        $date_format = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
+        // Date-only format used by WordPress for the site locale.
+        $date_format = get_option( 'date_format' );
 
         ?>
         <div class="wrap">
