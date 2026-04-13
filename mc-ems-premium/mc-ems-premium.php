@@ -70,10 +70,11 @@ final class EMS_Premium_Bootstrap {
     public static function boot(): void {
         if (!self::base_active()) return;
 
-        // Multi-schedule (textarea override for the session time field) is
-        // always initialised as long as the base plugin is active, so that the
-        // mcems_admin_session_time_field_html filter is always registered and
-        // the UI override is visible whenever the premium plugin is present.
+        // Multi-schedule (textarea override for the "Create sessions" time field)
+        // is always initialised as long as the base plugin is active, so that the
+        // mcems_admin_create_session_time_field_html filter is always registered
+        // and the textarea is visible whenever the premium plugin is present.
+        // The "Edit session" metabox keeps its original single time input.
         require_once plugin_dir_path(__FILE__) . 'includes/class-mcems-multi-schedule.php';
 
         if (class_exists('MCEMS_Multi_Schedule')) {
