@@ -367,7 +367,7 @@ class MCEMS_License_Page {
                         <?php if ( $activated_at > 0 ) : ?>
                         <tr>
                             <th scope="row" style="padding-left:0;">
-                                <?php esc_html_e( 'Activated', 'mc-ems' ); ?>
+                                <?php esc_html_e( 'Activation date', 'mc-ems' ); ?>
                             </th>
                             <td>
                                 <?php echo esc_html( date_i18n( $date_format, $activated_at ) ); ?>
@@ -396,11 +396,11 @@ class MCEMS_License_Page {
                         <?php if ( $expires_at > 0 ) : ?>
                         <tr>
                             <th scope="row" style="padding-left:0;">
-                                <?php esc_html_e( 'Expires', 'mc-ems' ); ?>
+                                <?php esc_html_e( 'Expiration date', 'mc-ems' ); ?>
                             </th>
                             <td>
                                 <?php
-                                echo esc_html( date_i18n( get_option( 'date_format' ), $expires_at ) );
+                                echo esc_html( date_i18n( $date_format, $expires_at ) );
                                 if ( $expires_at < time() ) {
                                     ?>
                                     <span style="color:#c62828;font-weight:bold;">(<?php esc_html_e( 'expired', 'mc-ems' ); ?>)</span>
