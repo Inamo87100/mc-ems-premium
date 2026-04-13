@@ -88,7 +88,7 @@ class MCEMS_Multi_Schedule {
             rows="5"
             style="width:100%;font-family:monospace;"
             placeholder="<?php esc_attr_e( '09:00', 'mc-ems' ); ?>"
-            <?php echo esc_attr( $disabled ) ? 'disabled' : ''; ?>
+            <?php echo $disabled ? 'disabled' : ''; ?>
         ><?php echo esc_textarea( $textarea_val ); ?></textarea>
         <p class="description">
             <?php esc_html_e( 'Enter one time per line in HH:MM format (e.g. 09:00). Invalid or empty lines are ignored. The first valid time is also used as the primary session time.', 'mc-ems' ); ?>
