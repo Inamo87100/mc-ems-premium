@@ -2,18 +2,19 @@
 /**
  * MC-EMS Premium – Multi-Schedule (Multiple Session Times)
  *
- * When the premium license is active, this class adds a "Session Times" meta
- * box to the session create/edit screen that replaces the single time input
- * with a textarea allowing the administrator to enter multiple times per day
- * (one per line, format HH:MM).
+ * When the premium license is active, this class replaces the single time
+ * input in the base plugin's session edit metabox with a textarea that
+ * allows the administrator to enter multiple times per day (one per line,
+ * format HH:MM), using the 'mcems_admin_session_time_field_html' filter
+ * provided by the base plugin.
  *
  * How it works:
- *  - On add_meta_boxes: registers a "Session Times" meta box containing a
- *    textarea (one HH:MM time per line).
+ *  - Hooks 'mcems_admin_session_time_field_html' (filter, priority 10):
+ *    returns textarea HTML that the base plugin outputs in place of its
+ *    default <input type="time">.  The textarea is pre-populated with the
+ *    existing scheduled times, one per line.
  *  - On admin_enqueue_scripts: enqueues premium JS/CSS on the session CPT
- *    edit page and injects a small script that hides the base plugin's single
- *    time input row and keeps it in sync with the first valid time entered in
- *    the textarea (for backward compatibility with the base plugin's save).
+ *    edit page.
  *  - On save_post (priority 25, after the base plugin's priority 10): reads
  *    the textarea value, splits it into lines, validates each line as a valid
  *    HH:MM time, deduplicates, saves the full list to _mcems_premium_schedule_times,
@@ -52,57 +53,48 @@ class MCEMS_Multi_Schedule {
     // -------------------------------------------------------------------------
 
     public static function init(): void {
-        add_action( 'add_meta_boxes',                 [ __CLASS__, 'register_meta_box' ] );
-        add_action( 'admin_enqueue_scripts',          [ __CLASS__, 'enqueue_assets' ] );
-        add_action( 'save_post_' . self::SESSION_CPT, [ __CLASS__, 'save_schedule_times' ], 25 );
+        add_filter( 'mcems_admin_session_time_field_html', [ __CLASS__, 'filter_time_field_html' ], 10, 4 );
+        add_action( 'admin_enqueue_scripts',               [ __CLASS__, 'enqueue_assets' ] );
+        add_action( 'save_post_' . self::SESSION_CPT,      [ __CLASS__, 'save_schedule_times' ], 25 );
     }
 
     // -------------------------------------------------------------------------
-    // Meta box
+    // Filter callback – replaces the base plugin's single time input
     // -------------------------------------------------------------------------
 
     /**
-     * Register the "Session Times" meta box on the session CPT edit screen.
+     * Replace the base plugin's single time <input> with a multi-time textarea.
+     *
+     * Hooked onto the 'mcems_admin_session_time_field_html' filter that is
+     * applied by the base plugin inside the session edit metabox.  Returning
+     * a non-empty string causes the base plugin to output that HTML instead of
+     * its default <input type="time">.
+     *
+     * @param string  $html     Existing HTML (empty by default).
+     * @param string  $value    Current single-time value from the base meta key.
+     * @param string  $disabled 'disabled' attribute string, or empty.
+     * @param WP_Post $post     Current session post object.
+     * @return string           Textarea HTML to output in place of the time input.
      */
-    public static function register_meta_box(): void {
-        add_meta_box(
-            'mcems-schedule-times',
-            __( 'Session Times', 'mc-ems' ),
-            [ __CLASS__, 'render_meta_box' ],
-            self::SESSION_CPT,
-            'normal',
-            'high'
-        );
-    }
+    public static function filter_time_field_html( string $html, string $value, string $disabled, WP_Post $post ): string {
+        $times        = self::get_schedule_times( $post->ID );
+        $textarea_val = implode( "\n", $times );
 
-    /**
-     * Render the "Session Times" meta box.
-     *
-     * Displays a textarea pre-populated with the existing scheduled times,
-     * one per line in HH:MM format.
-     *
-     * @param WP_Post $post The current post object.
-     */
-    public static function render_meta_box( WP_Post $post ): void {
-        $times         = self::get_schedule_times( $post->ID );
-        $textarea_val  = implode( "\n", $times );
+        ob_start();
         ?>
-        <p>
-            <label for="mcems-schedule-times-textarea">
-                <?php esc_html_e( 'Session Times (one per line, format HH:MM)', 'mc-ems' ); ?>
-            </label>
-        </p>
         <textarea
             id="mcems-schedule-times-textarea"
             name="<?php echo esc_attr( self::TEXTAREA_FIELD ); ?>"
             rows="5"
             style="width:100%;font-family:monospace;"
             placeholder="<?php esc_attr_e( '09:00', 'mc-ems' ); ?>"
+            <?php echo $disabled ? 'disabled' : ''; ?>
         ><?php echo esc_textarea( $textarea_val ); ?></textarea>
         <p class="description">
             <?php esc_html_e( 'Enter one time per line in HH:MM format (e.g. 09:00). Invalid or empty lines are ignored. The first valid time is also used as the primary session time.', 'mc-ems' ); ?>
         </p>
         <?php
+        return ob_get_clean();
     }
 
     // -------------------------------------------------------------------------
@@ -111,10 +103,6 @@ class MCEMS_Multi_Schedule {
 
     /**
      * Enqueue premium JS/CSS on the session CPT edit screen.
-     *
-     * The JS hides the base plugin's single time input row and keeps it in
-     * sync with the first valid time entered in the textarea so that the base
-     * plugin's save logic continues to work correctly.
      *
      * @param string $hook_suffix Current admin page hook suffix.
      */
@@ -159,13 +147,6 @@ class MCEMS_Multi_Schedule {
         wp_localize_script( 'mcems-premium-js', 'mcems_premium', [
             'ajax_url' => admin_url( 'admin-ajax.php' ),
             'nonce'    => wp_create_nonce( 'mcems_premium_nonce' ),
-        ] );
-
-        // Pass the base plugin's input field name so the JS can hide it and
-        // keep it in sync with the first time in our textarea.
-        wp_localize_script( 'mcems-premium-js', 'mcemsMultiSchedule', [
-            'baseField'    => self::BASE_TIME_FIELD,
-            'textareaId'   => 'mcems-schedule-times-textarea',
         ] );
     }
 
