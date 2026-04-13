@@ -593,60 +593,126 @@
   /**
    * Multi-Schedule – Textarea mode
    *
-   * When the premium license is active, the "Session Times" meta box renders a
-   * textarea where the administrator can enter multiple HH:MM times (one per
-   * line).  This module hides the base plugin's single time input row and keeps
-   * the hidden input in sync with the first valid time in the textarea so that
-   * the base plugin's save logic continues to work correctly.
+   * When the premium plugin is active, the "Create sessions" admin page renders
+   * a textarea where the administrator can enter multiple HH:MM times (one per
+   * line).  This module:
+   *   1. Keeps a hidden <input name="time"> in sync with the first valid time
+   *      in the textarea so the base plugin's save handler reads a primary time.
+   *   2. Validates the textarea on form submit: shows an error only when a
+   *      non-empty line is NOT a valid 24-hour HH:MM time (empty lines are
+   *      silently ignored).
    *
-   * Requires the mcemsMultiSchedule object (localised by MCEMS_Multi_Schedule::enqueue_assets()):
+   * Requires the mcemsMultiSchedule object localised by
+   * MCEMS_Multi_Schedule::enqueue_assets() on the Create sessions page:
    *   {
-   *     baseField:   string,  // original input name expected by the base plugin
-   *     textareaId:  string,  // id of the premium textarea
+   *     textareaId:      string,  // id of the premium textarea
+   *     syncTo:          string,  // name attr of the hidden base-plugin time input
+   *     errorInvalidTime: string, // translatable error template ("%s" = bad value)
    *   }
+   *
+   * NOTE: The "Edit session" metabox is NOT affected by this module.
    */
   const MCEMSMultiSchedule = {
 
     init: function() {
       if ( typeof mcemsMultiSchedule === 'undefined' ) { return; }
 
-      var cfg        = mcemsMultiSchedule;
-      var $original  = $( '[name="' + cfg.baseField + '"]' ).first();
-      var $textarea  = $( '#' + cfg.textareaId );
+      var cfg      = mcemsMultiSchedule;
+      var $textarea = $( '#' + cfg.textareaId );
+      var $sync     = $( '[name="' + cfg.syncTo + '"]' ).first();
 
-      if ( ! $original.length || ! $textarea.length ) { return; }
+      if ( ! $textarea.length ) { return; }
 
-      // Hide the base plugin's time input row so only our textarea is shown.
-      $original.closest( 'tr' ).hide();
-      $original.attr( 'type', 'hidden' ).attr( 'aria-hidden', 'true' );
+      // Sync the hidden time input on page load so the base plugin already has
+      // a valid primary time if the textarea is pre-populated.
+      if ( $sync.length ) {
+        this._syncPrimary( $sync, $textarea );
+      }
 
-      // Sync on init.
-      this._syncPrimary( $original, $textarea );
-
-      // Keep in sync as the user types in the textarea.
+      // Keep the hidden input in sync as the user types.
       $textarea.on( 'input change', function() {
-        MCEMSMultiSchedule._syncPrimary( $original, $textarea );
+        if ( $sync.length ) {
+          MCEMSMultiSchedule._syncPrimary( $sync, $textarea );
+        }
       } );
+
+      // Validate before the form is submitted.  Only block submission when a
+      // non-empty line is actually invalid; empty lines are silently ignored.
+      $textarea.closest( 'form' ).on( 'submit', function( e ) {
+        var msg = MCEMSMultiSchedule._validateTimes( $textarea.val() );
+        if ( msg ) {
+          e.preventDefault();
+          MCEMSMultiSchedule._showError( $textarea, msg );
+          $textarea.focus();
+        } else {
+          MCEMSMultiSchedule._clearError( $textarea );
+        }
+      } );
+    },
+
+    /**
+     * Validate each non-empty, trimmed line as a 24-hour HH:MM time.
+     * Returns an error string for the first invalid line, or '' if all valid.
+     *
+     * @param  {string} value  Full textarea text.
+     * @return {string}        Error message, or empty string when all lines are valid.
+     */
+    _validateTimes: function( value ) {
+      var lines = value.split( '\n' );
+      for ( var i = 0; i < lines.length; i++ ) {
+        var t = lines[ i ].trim();
+        if ( t === '' ) { continue; } // skip empty / whitespace-only lines
+        if ( ! /^(?:[01]\d|2[0-3]):[0-5]\d$/.test( t ) ) {
+          var tpl = ( mcemsMultiSchedule.errorInvalidTime || 'Invalid time: %s' );
+          return tpl.replace( '%s', t );
+        }
+      }
+      return ''; // all non-empty lines are valid
     },
 
     /**
      * Mirror the first valid HH:MM time from the textarea to the hidden base
      * input so the base plugin's save handler reads the correct primary time.
      *
-     * @param {jQuery} $original  The base plugin's hidden time input.
-     * @param {jQuery} $textarea  The premium "Session Times" textarea.
+     * @param {jQuery} $sync     Hidden input whose value is kept in sync.
+     * @param {jQuery} $textarea The premium "Session Times" textarea.
      */
-    _syncPrimary: function( $original, $textarea ) {
+    _syncPrimary: function( $sync, $textarea ) {
       var lines = $textarea.val().split( '\n' );
       var first = '';
       for ( var i = 0; i < lines.length; i++ ) {
         var t = lines[ i ].trim();
-        if ( /^([01]\d|2[0-3]):[0-5]\d$/.test( t ) ) {
+        if ( /^(?:[01]\d|2[0-3]):[0-5]\d$/.test( t ) ) {
           first = t;
           break;
         }
       }
-      $original.val( first );
+      $sync.val( first );
+    },
+
+    /**
+     * Display an inline error message below the textarea.
+     *
+     * @param {jQuery} $textarea Target textarea element.
+     * @param {string} message   Error text to display.
+     */
+    _showError: function( $textarea, message ) {
+      var $err = $textarea.next( '.mcems-time-error' );
+      if ( ! $err.length ) {
+        $err = $( '<p class="mcems-time-error">' ).insertAfter( $textarea );
+      }
+      $err.text( message );
+      $textarea.css( 'border-color', '#dc3545' );
+    },
+
+    /**
+     * Remove any inline error message shown below the textarea.
+     *
+     * @param {jQuery} $textarea Target textarea element.
+     */
+    _clearError: function( $textarea ) {
+      $textarea.next( '.mcems-time-error' ).remove();
+      $textarea.css( 'border-color', '' );
     }
   };
 

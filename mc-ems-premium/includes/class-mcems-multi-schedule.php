@@ -54,6 +54,10 @@ class MCEMS_Multi_Schedule {
         // metabox always keeps its original single time input.
         add_filter( 'mcems_admin_create_session_time_field_html', [ __CLASS__, 'filter_create_session_time_field_html' ], 10, 3 );
         add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_assets' ] );
+
+        // Save all scheduled times from the textarea when a session post is created
+        // via the "Create sessions" admin page.
+        add_action( 'save_post_' . self::SESSION_CPT, [ __CLASS__, 'save_schedule_times' ], 20 );
     }
 
     // -------------------------------------------------------------------------
@@ -78,16 +82,29 @@ class MCEMS_Multi_Schedule {
     public static function filter_create_session_time_field_html( string $html, string $value, string $disabled ): string {
         ob_start();
         ?>
+        <?php
+        /*
+         * Hidden input keeps the base plugin's 'time' POST field in sync
+         * with the first valid time from the textarea (handled by JS), so
+         * the base plugin's PHP save handler can read a single primary time
+         * while this plugin stores the full list of times in post meta.
+         */
+        ?>
+        <input
+            type="hidden"
+            name="time"
+            value="<?php echo esc_attr( $value ); ?>"
+            <?php echo $disabled ? 'disabled' : ''; ?>
+        >
         <textarea
             id="mcems-schedule-times-textarea"
             name="<?php echo esc_attr( self::TEXTAREA_FIELD ); ?>"
             rows="5"
-            style="width:100%;font-family:monospace;"
             placeholder="<?php esc_attr_e( '09:00', 'mc-ems' ); ?>"
             <?php echo $disabled ? 'disabled' : ''; ?>
         ><?php echo esc_textarea( $value ); ?></textarea>
         <p class="description">
-            <?php esc_html_e( 'Enter one time per line in HH:MM format (e.g. 09:00). Invalid or empty lines are ignored.', 'mc-ems' ); ?>
+            <?php esc_html_e( 'Enter one time per line in HH:MM 24-hour format (e.g. 09:00). Empty lines are ignored.', 'mc-ems' ); ?>
         </p>
         <?php
         return ob_get_clean();
@@ -149,6 +166,83 @@ class MCEMS_Multi_Schedule {
             'ajax_url' => admin_url( 'admin-ajax.php' ),
             'nonce'    => wp_create_nonce( 'mcems_premium_nonce' ),
         ] );
+
+        // Provide configuration for the multi-time textarea on the "Create sessions"
+        // page only.  This enables the JS module to sync the hidden base-plugin
+        // time field and to validate each line of the textarea before submission.
+        if ( $on_create_sessions ) {
+            wp_localize_script( 'mcems-premium-js', 'mcemsMultiSchedule', [
+                'textareaId'       => 'mcems-schedule-times-textarea',
+                'syncTo'           => 'time',
+                /* translators: %s is the invalid time value entered by the user */
+                'errorInvalidTime' => __( 'Invalid time "%s". Use 24-hour HH:MM format (e.g. 09:00).', 'mc-ems' ),
+            ] );
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Post save handler – persist all scheduled times
+    // -------------------------------------------------------------------------
+
+    /**
+     * Save all valid times from the multi-time textarea into post meta.
+     *
+     * Hooked onto 'save_post_mcemexce_session' (priority 20) so it runs after
+     * the base plugin's own save logic.  Only acts when the Create sessions
+     * form is being processed (i.e. the premium textarea field is present in
+     * the POST data).
+     *
+     * Parsing rules:
+     *  - Split on newlines.
+     *  - Trim leading/trailing whitespace from each line.
+     *  - Skip empty lines silently.
+     *  - Accept only lines matching 24-hour HH:MM (00:00 – 23:59).
+     *  - Lines that do not match are silently skipped (PHP side); the JS layer
+     *    prevents the form from being submitted with invalid lines.
+     *
+     * @param int $post_id The session post being saved.
+     */
+    public static function save_schedule_times( int $post_id ): void {
+        // Only process requests that include the premium textarea field.
+        // Nonce verification is intentionally omitted here: this hook fires
+        // inside the base plugin's form-submission flow, which already verifies
+        // its own nonce before calling wp_insert_post() (and therefore before
+        // this hook runs).  Any other context where save_post fires will not
+        // have TEXTAREA_FIELD in $_POST, so the guard below exits early.
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        if ( ! isset( $_POST[ self::TEXTAREA_FIELD ] ) ) {
+            return;
+        }
+
+        // Skip auto-saves and post revisions.
+        if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
+            return;
+        }
+
+        // Require the current user to have permission to edit this post.
+        if ( ! current_user_can( 'edit_post', $post_id ) ) {
+            return;
+        }
+
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce checked by base plugin.
+        $raw   = sanitize_textarea_field( wp_unslash( $_POST[ self::TEXTAREA_FIELD ] ) );
+        $lines = explode( "\n", $raw );
+        $times = [];
+
+        foreach ( $lines as $line ) {
+            $t = trim( $line );
+            if ( '' === $t ) {
+                continue; // skip empty / whitespace-only lines
+            }
+            // Accept only valid 24-hour HH:MM values (00:00 – 23:59).
+            if ( preg_match( '/^(?:[01]\d|2[0-3]):[0-5]\d$/', $t ) ) {
+                $times[] = $t;
+            }
+        }
+
+        if ( ! empty( $times ) ) {
+            update_post_meta( $post_id, self::META_KEY, $times );
+        }
     }
 
     // -------------------------------------------------------------------------
