@@ -218,7 +218,7 @@ class MCEMS_Multi_Schedule {
         $times     = [];
 
         foreach ( $raw_lines as $line ) {
-            $t = trim( $line );
+            $t = sanitize_text_field( trim( $line ) );
             // Accept only valid H:i values (00:00 – 23:59).
             if ( preg_match( '/^([01]\d|2[0-3]):[0-5]\d$/', $t ) ) {
                 $times[] = $t;
