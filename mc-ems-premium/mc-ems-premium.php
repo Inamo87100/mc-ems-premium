@@ -70,14 +70,23 @@ final class EMS_Premium_Bootstrap {
     public static function boot(): void {
         if (!self::base_active()) return;
 
-        // Gate ALL premium features behind a valid license.
+        // Multi-schedule (textarea override for the session time field) is
+        // always initialised as long as the base plugin is active, so that the
+        // mcems_admin_session_time_field_html filter is always registered and
+        // the UI override is visible whenever the premium plugin is present.
+        require_once plugin_dir_path(__FILE__) . 'includes/class-mcems-multi-schedule.php';
+
+        if (class_exists('MCEMS_Multi_Schedule')) {
+            MCEMS_Multi_Schedule::init();
+        }
+
+        // Gate all other premium features behind a valid license.
         // The site and the free plugin are never affected.
         if (!MCEMS_License::is_valid()) return;
 
         require_once plugin_dir_path(__FILE__) . 'includes/class-mcems-unlimited-limits.php';
         require_once plugin_dir_path(__FILE__) . 'includes/class-mcems-bookings-list.php';
         require_once plugin_dir_path(__FILE__) . 'includes/class-mcems-ajax.php';
-        require_once plugin_dir_path(__FILE__) . 'includes/class-mcems-multi-schedule.php';
 
         // Replace placeholder shortcode (Base) with real one
         if (shortcode_exists('mcems_bookings_list')) {
@@ -90,10 +99,6 @@ final class EMS_Premium_Bootstrap {
 
         if (class_exists('MCEMS_Premium_Ajax')) {
             MCEMS_Premium_Ajax::init();
-        }
-
-        if (class_exists('MCEMS_Multi_Schedule')) {
-            MCEMS_Multi_Schedule::init();
         }
     }
 }
