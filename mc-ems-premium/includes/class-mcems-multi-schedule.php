@@ -130,26 +130,27 @@ class MCEMS_Multi_Schedule {
         </p>
         <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Wait one tick so the enqueued premium.js ready callback can bind first.
+            // If it already bound handlers, the fallback exits immediately.
             window.setTimeout(function() {
-                var sessionTimeWrappers = document.querySelectorAll('.session-times-wrapper');
-                if (!sessionTimeWrappers.length) {
+                var wrapper = document.getElementById('mcems-schedule-times-repeater');
+                if (!wrapper || !wrapper.classList.contains('session-times-wrapper')) {
                     return;
                 }
 
-                sessionTimeWrappers.forEach(function(wrapper) {
-                    if (wrapper.getAttribute('data-mcems-time-ui-bound') === '1') {
-                        return;
-                    }
-                    wrapper.setAttribute('data-mcems-time-ui-bound', '1');
+                if (wrapper.getAttribute('data-mcems-time-ui-bound') === '1') {
+                    return;
+                }
+                wrapper.setAttribute('data-mcems-time-ui-bound', '1');
 
-                    var rowsContainer = wrapper.querySelector('.session-time-rows');
-                    if (!rowsContainer) {
-                        return;
-                    }
+                var rowsContainer = wrapper.querySelector('.session-time-rows');
+                if (!rowsContainer) {
+                    return;
+                }
 
-                    var inputName = wrapper.getAttribute('data-input-name') || 'session_times[]';
-                    var removeLabel = wrapper.getAttribute('data-remove-label') || 'Remove';
-                    var syncInput = document.querySelector('input[name="time"]');
+                var inputName = wrapper.getAttribute('data-input-name') || 'session_times[]';
+                var removeLabel = wrapper.getAttribute('data-remove-label') || 'Remove';
+                var syncInput = document.querySelector('input[name="time"]');
 
                     var getRows = function() {
                         return rowsContainer.querySelectorAll('.session-time-row');
@@ -240,9 +241,8 @@ class MCEMS_Multi_Schedule {
                         }
                     });
 
-                    toggleRemoveButtons();
-                    syncPrimaryInput();
-                });
+                toggleRemoveButtons();
+                syncPrimaryInput();
             }, 0);
         });
         </script>
