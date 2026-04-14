@@ -97,6 +97,7 @@ class MCEMS_Multi_Schedule {
             class="session-times-wrapper"
             data-input-name="<?php echo esc_attr( self::TIMES_FIELD ); ?>[]"
             data-remove-label="<?php echo esc_attr( __( 'Remove', 'mc-ems' ) ); ?>"
+            data-sync-input-name="time"
         >
             <div class="session-time-rows">
                 <div class="session-time-row">
@@ -150,7 +151,8 @@ class MCEMS_Multi_Schedule {
 
                 var inputName = wrapper.getAttribute('data-input-name') || 'session_times[]';
                 var removeLabel = wrapper.getAttribute('data-remove-label') || 'Remove';
-                var syncInput = document.querySelector('input[name="time"]');
+                var syncInputName = wrapper.getAttribute('data-sync-input-name') || 'time';
+                var syncInput = document.querySelector('input[name="' + syncInputName + '"]');
 
                 var getRows = function() {
                     return rowsContainer.querySelectorAll('.session-time-row');
