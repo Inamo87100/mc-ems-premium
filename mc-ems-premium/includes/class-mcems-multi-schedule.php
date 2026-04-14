@@ -10,8 +10,9 @@
  *
  * How it works:
  *  - Hooks 'mcems_admin_create_session_time_field_html' (filter, priority 10):
- *    returns textarea HTML that the base plugin outputs in place of its
- *    default <input type="time"> on the "Create sessions" page only.
+ *    returns repeatable HTML5 time-input markup that the base plugin outputs
+ *    in place of its default <input type="time"> on the "Create sessions"
+ *    page only.
  *    The "Edit session" metabox is NOT affected; it always keeps the single
  *    time input.
  *  - On admin_enqueue_scripts: enqueues premium JS/CSS on the "Create
@@ -91,20 +92,26 @@ class MCEMS_Multi_Schedule {
             value="<?php echo esc_attr( $value ); ?>"
             <?php echo $disabled ? 'disabled' : ''; ?>
         >
-        <div id="mcems-schedule-times-repeater" class="mcems-schedule-times-repeater">
-            <div class="mcems-schedule-time-rows">
-                <div class="mcems-schedule-time-row">
+        <div
+            id="mcems-schedule-times-repeater"
+            class="session-times-wrapper"
+            data-input-name="<?php echo esc_attr( self::TIMES_FIELD ); ?>[]"
+            data-remove-label="<?php echo esc_attr( __( 'Remove', 'mc-ems' ) ); ?>"
+            data-sync-input-name="time"
+        >
+            <div class="session-time-rows">
+                <div class="session-time-row">
                     <input
                         type="time"
                         name="<?php echo esc_attr( self::TIMES_FIELD ); ?>[]"
-                        class="mcems-schedule-time-input"
+                        class="session-time-input"
                         value="<?php echo esc_attr( $value ); ?>"
                         step="60"
                         <?php echo $disabled ? 'disabled' : ''; ?>
                     >
                     <button
                         type="button"
-                        class="button-link-delete mcems-remove-time-row"
+                        class="button-link-delete remove-time-btn"
                         <?php echo $disabled ? 'disabled' : ''; ?>
                     >
                         <?php esc_html_e( 'Remove', 'mc-ems' ); ?>
@@ -113,7 +120,7 @@ class MCEMS_Multi_Schedule {
             </div>
             <button
                 type="button"
-                class="button mcems-add-time-row"
+                class="button add-time-btn"
                 <?php echo $disabled ? 'disabled' : ''; ?>
             >
                 <?php esc_html_e( 'Add time', 'mc-ems' ); ?>
@@ -122,6 +129,125 @@ class MCEMS_Multi_Schedule {
         <p class="description">
             <?php esc_html_e( 'Add one or more session times using the time fields below.', 'mc-ems' ); ?>
         </p>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait one tick so the enqueued premium.js ready callback can bind first.
+            // If it already bound handlers, the fallback exits immediately.
+            window.setTimeout(function() {
+                var wrapper = document.getElementById('mcems-schedule-times-repeater');
+                if (!wrapper || !wrapper.classList.contains('session-times-wrapper')) {
+                    return;
+                }
+
+                if (wrapper.getAttribute('data-mcems-time-ui-bound') === '1') {
+                    return;
+                }
+                wrapper.setAttribute('data-mcems-time-ui-bound', '1');
+
+                var rowsContainer = wrapper.querySelector('.session-time-rows');
+                if (!rowsContainer) {
+                    return;
+                }
+
+                var inputName = wrapper.getAttribute('data-input-name') || 'session_times[]';
+                var removeLabel = wrapper.getAttribute('data-remove-label') || 'Remove';
+                var syncInputName = wrapper.getAttribute('data-sync-input-name') || 'time';
+                var syncInput = document.querySelector('input[name="' + syncInputName + '"]');
+
+                var getRowElements = function() {
+                    return rowsContainer.querySelectorAll('.session-time-row');
+                };
+
+                var syncPrimaryInput = function() {
+                    if (!syncInput) {
+                        return;
+                    }
+
+                    var firstNonEmptyTime = '';
+                    rowsContainer.querySelectorAll('.session-time-input').forEach(function(input) {
+                        if (firstNonEmptyTime !== '') {
+                            return;
+                        }
+                        var value = (input.value || '').trim();
+                        if (value !== '') {
+                            firstNonEmptyTime = value;
+                        }
+                    });
+                    syncInput.value = firstNonEmptyTime;
+                };
+
+                var toggleRemoveButtons = function() {
+                    var disable = getRowElements().length <= 1;
+                    rowsContainer.querySelectorAll('.remove-time-btn').forEach(function(button) {
+                        button.disabled = disable;
+                    });
+                };
+
+                var createRowElement = function() {
+                    var row = document.createElement('div');
+                    row.className = 'session-time-row';
+
+                    var input = document.createElement('input');
+                    input.type = 'time';
+                    input.name = inputName;
+                    input.className = 'session-time-input';
+                    input.step = '60';
+
+                    var removeButton = document.createElement('button');
+                    removeButton.type = 'button';
+                    removeButton.className = 'button-link-delete remove-time-btn';
+                    removeButton.textContent = removeLabel;
+
+                    row.appendChild(input);
+                    row.appendChild(removeButton);
+                    return row;
+                };
+
+                wrapper.addEventListener('click', function(event) {
+                    var addButton = event.target.closest('.add-time-btn');
+                    if (addButton && wrapper.contains(addButton)) {
+                        event.preventDefault();
+                        var newRow = createRowElement();
+                        rowsContainer.appendChild(newRow);
+                        toggleRemoveButtons();
+                        syncPrimaryInput();
+                        newRow.querySelector('.session-time-input').focus();
+                        return;
+                    }
+
+                    var removeButton = event.target.closest('.remove-time-btn');
+                    if (removeButton && wrapper.contains(removeButton)) {
+                        event.preventDefault();
+                        if (getRowElements().length <= 1) {
+                            return;
+                        }
+
+                        var row = removeButton.closest('.session-time-row');
+                        if (row) {
+                            row.remove();
+                            toggleRemoveButtons();
+                            syncPrimaryInput();
+                        }
+                    }
+                });
+
+                wrapper.addEventListener('input', function(event) {
+                    if (event.target.classList.contains('session-time-input')) {
+                        syncPrimaryInput();
+                    }
+                });
+
+                wrapper.addEventListener('change', function(event) {
+                    if (event.target.classList.contains('session-time-input')) {
+                        syncPrimaryInput();
+                    }
+                });
+
+                toggleRemoveButtons();
+                syncPrimaryInput();
+            }, 0);
+        });
+        </script>
         <?php
         return ob_get_clean();
     }
