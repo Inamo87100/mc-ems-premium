@@ -152,94 +152,94 @@ class MCEMS_Multi_Schedule {
                 var removeLabel = wrapper.getAttribute('data-remove-label') || 'Remove';
                 var syncInput = document.querySelector('input[name="time"]');
 
-                    var getRows = function() {
-                        return rowsContainer.querySelectorAll('.session-time-row');
-                    };
+                var getRows = function() {
+                    return rowsContainer.querySelectorAll('.session-time-row');
+                };
 
-                    var syncPrimaryInput = function() {
-                        if (!syncInput) {
+                var syncPrimaryInput = function() {
+                    if (!syncInput) {
+                        return;
+                    }
+
+                    var firstNonEmptyTime = '';
+                    rowsContainer.querySelectorAll('.session-time-input').forEach(function(input) {
+                        if (firstNonEmptyTime !== '') {
+                            return;
+                        }
+                        var value = (input.value || '').trim();
+                        if (value !== '') {
+                            firstNonEmptyTime = value;
+                        }
+                    });
+                    syncInput.value = firstNonEmptyTime;
+                };
+
+                var toggleRemoveButtons = function() {
+                    var disable = getRows().length <= 1;
+                    rowsContainer.querySelectorAll('.remove-time-btn').forEach(function(button) {
+                        button.disabled = disable;
+                    });
+                };
+
+                var buildRow = function() {
+                    var row = document.createElement('div');
+                    row.className = 'session-time-row';
+
+                    var input = document.createElement('input');
+                    input.type = 'time';
+                    input.name = inputName;
+                    input.className = 'session-time-input';
+                    input.step = '60';
+
+                    var removeButton = document.createElement('button');
+                    removeButton.type = 'button';
+                    removeButton.className = 'button-link-delete remove-time-btn';
+                    removeButton.textContent = removeLabel;
+
+                    row.appendChild(input);
+                    row.appendChild(removeButton);
+                    return row;
+                };
+
+                wrapper.addEventListener('click', function(event) {
+                    var addButton = event.target.closest('.add-time-btn');
+                    if (addButton && wrapper.contains(addButton)) {
+                        event.preventDefault();
+                        var newRow = buildRow();
+                        rowsContainer.appendChild(newRow);
+                        toggleRemoveButtons();
+                        syncPrimaryInput();
+                        newRow.querySelector('.session-time-input').focus();
+                        return;
+                    }
+
+                    var removeButton = event.target.closest('.remove-time-btn');
+                    if (removeButton && wrapper.contains(removeButton)) {
+                        event.preventDefault();
+                        if (getRows().length <= 1) {
                             return;
                         }
 
-                        var firstNonEmptyTime = '';
-                        rowsContainer.querySelectorAll('.session-time-input').forEach(function(input) {
-                            if (firstNonEmptyTime !== '') {
-                                return;
-                            }
-                            var value = (input.value || '').trim();
-                            if (value !== '') {
-                                firstNonEmptyTime = value;
-                            }
-                        });
-                        syncInput.value = firstNonEmptyTime;
-                    };
-
-                    var toggleRemoveButtons = function() {
-                        var disable = getRows().length <= 1;
-                        rowsContainer.querySelectorAll('.remove-time-btn').forEach(function(button) {
-                            button.disabled = disable;
-                        });
-                    };
-
-                    var buildRow = function() {
-                        var row = document.createElement('div');
-                        row.className = 'session-time-row';
-
-                        var input = document.createElement('input');
-                        input.type = 'time';
-                        input.name = inputName;
-                        input.className = 'session-time-input';
-                        input.step = '60';
-
-                        var removeButton = document.createElement('button');
-                        removeButton.type = 'button';
-                        removeButton.className = 'button-link-delete remove-time-btn';
-                        removeButton.textContent = removeLabel;
-
-                        row.appendChild(input);
-                        row.appendChild(removeButton);
-                        return row;
-                    };
-
-                    wrapper.addEventListener('click', function(event) {
-                        var addButton = event.target.closest('.add-time-btn');
-                        if (addButton && wrapper.contains(addButton)) {
-                            event.preventDefault();
-                            var newRow = buildRow();
-                            rowsContainer.appendChild(newRow);
+                        var row = removeButton.closest('.session-time-row');
+                        if (row) {
+                            row.remove();
                             toggleRemoveButtons();
                             syncPrimaryInput();
-                            newRow.querySelector('.session-time-input').focus();
-                            return;
                         }
+                    }
+                });
 
-                        var removeButton = event.target.closest('.remove-time-btn');
-                        if (removeButton && wrapper.contains(removeButton)) {
-                            event.preventDefault();
-                            if (getRows().length <= 1) {
-                                return;
-                            }
+                wrapper.addEventListener('input', function(event) {
+                    if (event.target.classList.contains('session-time-input')) {
+                        syncPrimaryInput();
+                    }
+                });
 
-                            var row = removeButton.closest('.session-time-row');
-                            if (row) {
-                                row.remove();
-                                toggleRemoveButtons();
-                                syncPrimaryInput();
-                            }
-                        }
-                    });
-
-                    wrapper.addEventListener('input', function(event) {
-                        if (event.target.classList.contains('session-time-input')) {
-                            syncPrimaryInput();
-                        }
-                    });
-
-                    wrapper.addEventListener('change', function(event) {
-                        if (event.target.classList.contains('session-time-input')) {
-                            syncPrimaryInput();
-                        }
-                    });
+                wrapper.addEventListener('change', function(event) {
+                    if (event.target.classList.contains('session-time-input')) {
+                        syncPrimaryInput();
+                    }
+                });
 
                 toggleRemoveButtons();
                 syncPrimaryInput();
