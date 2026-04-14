@@ -49,6 +49,9 @@ class MCEMS_Multi_Schedule {
      */
     const TIME_24H_PATTERN = '/^(?:[01]\d|2[0-3]):[0-5]\d$/';
 
+    /** Minimum allowed seats/capacity value when normalising numeric metadata. */
+    const MIN_SESSION_CAPACITY = 1;
+
     /**
      * Admin page slug for the base plugin's "Create sessions" page.
      * Used to scope asset enqueuing to that page only.
@@ -482,7 +485,7 @@ class MCEMS_Multi_Schedule {
 
         $session_capacity = 0;
         if ( null !== $capacity_meta_key ) {
-            $session_capacity = max( 1, absint( get_post_meta( $post_id, $capacity_meta_key, true ) ) );
+            $session_capacity = max( self::MIN_SESSION_CAPACITY, absint( get_post_meta( $post_id, $capacity_meta_key, true ) ) );
         }
 
         self::$is_generating_extra_sessions = true;
@@ -526,7 +529,7 @@ class MCEMS_Multi_Schedule {
                 if ( null !== $exam_meta_key ) {
                     update_post_meta( $clone_id, $exam_meta_key, $session_exam_id );
                 }
-                if ( null !== $capacity_meta_key && $session_capacity > 0 ) {
+                if ( null !== $capacity_meta_key ) {
                     update_post_meta( $clone_id, $capacity_meta_key, $session_capacity );
                 }
 
@@ -599,6 +602,26 @@ class MCEMS_Multi_Schedule {
             return '';
         }
 
+        $parsed = \DateTimeImmutable::createFromFormat( '!Y-m-d', $date );
+        $errors = \DateTimeImmutable::getLastErrors();
+        if ( false === $parsed ) {
+            return '';
+        }
+
+        if (
+            is_array( $errors ) &&
+            (
+                ! empty( $errors['warning_count'] ) ||
+                ! empty( $errors['error_count'] )
+            )
+        ) {
+            return '';
+        }
+
+        if ( $parsed->format( 'Y-m-d' ) !== $date ) {
+            return '';
+        }
+
         return $date;
     }
 
@@ -612,7 +635,12 @@ class MCEMS_Multi_Schedule {
      */
     private static function build_session_title( string $date, string $time, string $fallback_title ): string {
         if ( '' !== $date && '' !== $time ) {
-            return sprintf( 'Session %s %s', $date, $time );
+            return sprintf(
+                /* translators: 1: session date in Y-m-d format, 2: session time in H:i format */
+                __( 'Session %1$s %2$s', 'mc-ems' ),
+                $date,
+                $time
+            );
         }
 
         return sanitize_text_field( $fallback_title );
@@ -635,11 +663,34 @@ class MCEMS_Multi_Schedule {
 
         foreach ( $taxonomies as $taxonomy ) {
             $term_ids = wp_get_object_terms( $source_post_id, $taxonomy, [ 'fields' => 'ids' ] );
-            if ( is_wp_error( $term_ids ) || ! is_array( $term_ids ) ) {
+            if ( is_wp_error( $term_ids ) ) {
+                error_log(
+                    sprintf(
+                        'PREMIUM: Failed to read source taxonomy terms for taxonomy "%s" on session #%d: %s',
+                        $taxonomy,
+                        $source_post_id,
+                        $term_ids->get_error_message()
+                    )
+                );
                 continue;
             }
 
-            wp_set_object_terms( $clone_id, array_map( 'absint', $term_ids ), $taxonomy, false );
+            if ( ! is_array( $term_ids ) ) {
+                continue;
+            }
+
+            $append = false;
+            $set_terms_result = wp_set_object_terms( $clone_id, array_map( 'absint', $term_ids ), $taxonomy, $append );
+            if ( is_wp_error( $set_terms_result ) ) {
+                error_log(
+                    sprintf(
+                        'PREMIUM: Failed to clone taxonomy terms for taxonomy "%s" on session clone #%d: %s',
+                        $taxonomy,
+                        $clone_id,
+                        $set_terms_result->get_error_message()
+                    )
+                );
+            }
         }
     }
 
