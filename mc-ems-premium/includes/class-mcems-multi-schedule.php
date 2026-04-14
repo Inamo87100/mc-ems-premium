@@ -130,118 +130,120 @@ class MCEMS_Multi_Schedule {
         </p>
         <script>
         document.addEventListener('DOMContentLoaded', function() {
-            var wrappers = document.querySelectorAll('.session-times-wrapper');
-            if (!wrappers.length) {
-                return;
-            }
-
-            wrappers.forEach(function(wrapper) {
-                if (wrapper.dataset.mcemsTimeUiBound === '1') {
-                    return;
-                }
-                wrapper.dataset.mcemsTimeUiBound = '1';
-
-                var rowsContainer = wrapper.querySelector('.session-time-rows');
-                if (!rowsContainer) {
+            window.setTimeout(function() {
+                var wrappers = document.querySelectorAll('.session-times-wrapper');
+                if (!wrappers.length) {
                     return;
                 }
 
-                var inputName = wrapper.getAttribute('data-input-name') || 'session_times[]';
-                var removeLabel = wrapper.getAttribute('data-remove-label') || 'Remove';
-                var syncInput = document.querySelector('input[name="time"]');
+                wrappers.forEach(function(wrapper) {
+                    if (wrapper.getAttribute('data-mcems-time-ui-bound') === '1') {
+                        return;
+                    }
+                    wrapper.setAttribute('data-mcems-time-ui-bound', '1');
 
-                var getRows = function() {
-                    return rowsContainer.querySelectorAll('.session-time-row');
-                };
-
-                var syncPrimaryInput = function() {
-                    if (!syncInput) {
+                    var rowsContainer = wrapper.querySelector('.session-time-rows');
+                    if (!rowsContainer) {
                         return;
                     }
 
-                    var first = '';
-                    rowsContainer.querySelectorAll('.session-time-input').forEach(function(input) {
-                        if (first !== '') {
-                            return;
-                        }
-                        var value = (input.value || '').trim();
-                        if (value !== '') {
-                            first = value;
-                        }
-                    });
-                    syncInput.value = first;
-                };
+                    var inputName = wrapper.getAttribute('data-input-name') || 'session_times[]';
+                    var removeLabel = wrapper.getAttribute('data-remove-label') || 'Remove';
+                    var syncInput = document.querySelector('input[name="time"]');
 
-                var toggleRemoveButtons = function() {
-                    var disable = getRows().length <= 1;
-                    rowsContainer.querySelectorAll('.remove-time-btn').forEach(function(button) {
-                        button.disabled = disable;
-                    });
-                };
+                    var getRows = function() {
+                        return rowsContainer.querySelectorAll('.session-time-row');
+                    };
 
-                var buildRow = function() {
-                    var row = document.createElement('div');
-                    row.className = 'session-time-row';
-
-                    var input = document.createElement('input');
-                    input.type = 'time';
-                    input.name = inputName;
-                    input.className = 'session-time-input';
-                    input.step = '60';
-
-                    var removeButton = document.createElement('button');
-                    removeButton.type = 'button';
-                    removeButton.className = 'button-link-delete remove-time-btn';
-                    removeButton.textContent = removeLabel;
-
-                    row.appendChild(input);
-                    row.appendChild(removeButton);
-                    return row;
-                };
-
-                wrapper.addEventListener('click', function(event) {
-                    var addButton = event.target.closest('.add-time-btn');
-                    if (addButton && wrapper.contains(addButton)) {
-                        event.preventDefault();
-                        var newRow = buildRow();
-                        rowsContainer.appendChild(newRow);
-                        toggleRemoveButtons();
-                        syncPrimaryInput();
-                        newRow.querySelector('.session-time-input').focus();
-                        return;
-                    }
-
-                    var removeButton = event.target.closest('.remove-time-btn');
-                    if (removeButton && wrapper.contains(removeButton)) {
-                        event.preventDefault();
-                        if (getRows().length <= 1) {
+                    var syncPrimaryInput = function() {
+                        if (!syncInput) {
                             return;
                         }
 
-                        var row = removeButton.closest('.session-time-row');
-                        if (row) {
-                            row.remove();
+                        var first = '';
+                        rowsContainer.querySelectorAll('.session-time-input').forEach(function(input) {
+                            if (first !== '') {
+                                return;
+                            }
+                            var value = (input.value || '').trim();
+                            if (value !== '') {
+                                first = value;
+                            }
+                        });
+                        syncInput.value = first;
+                    };
+
+                    var toggleRemoveButtons = function() {
+                        var disable = getRows().length <= 1;
+                        rowsContainer.querySelectorAll('.remove-time-btn').forEach(function(button) {
+                            button.disabled = disable;
+                        });
+                    };
+
+                    var buildRow = function() {
+                        var row = document.createElement('div');
+                        row.className = 'session-time-row';
+
+                        var input = document.createElement('input');
+                        input.type = 'time';
+                        input.name = inputName;
+                        input.className = 'session-time-input';
+                        input.step = '60';
+
+                        var removeButton = document.createElement('button');
+                        removeButton.type = 'button';
+                        removeButton.className = 'button-link-delete remove-time-btn';
+                        removeButton.textContent = removeLabel;
+
+                        row.appendChild(input);
+                        row.appendChild(removeButton);
+                        return row;
+                    };
+
+                    wrapper.addEventListener('click', function(event) {
+                        var addButton = event.target.closest('.add-time-btn');
+                        if (addButton && wrapper.contains(addButton)) {
+                            event.preventDefault();
+                            var newRow = buildRow();
+                            rowsContainer.appendChild(newRow);
                             toggleRemoveButtons();
                             syncPrimaryInput();
+                            newRow.querySelector('.session-time-input').focus();
+                            return;
                         }
-                    }
-                });
 
-                wrapper.addEventListener('input', function(event) {
-                    if (event.target.classList.contains('session-time-input')) {
-                        syncPrimaryInput();
-                    }
-                });
+                        var removeButton = event.target.closest('.remove-time-btn');
+                        if (removeButton && wrapper.contains(removeButton)) {
+                            event.preventDefault();
+                            if (getRows().length <= 1) {
+                                return;
+                            }
 
-                wrapper.addEventListener('change', function(event) {
-                    if (event.target.classList.contains('session-time-input')) {
-                        syncPrimaryInput();
-                    }
-                });
+                            var row = removeButton.closest('.session-time-row');
+                            if (row) {
+                                row.remove();
+                                toggleRemoveButtons();
+                                syncPrimaryInput();
+                            }
+                        }
+                    });
 
-                toggleRemoveButtons();
-                syncPrimaryInput();
-            });
+                    wrapper.addEventListener('input', function(event) {
+                        if (event.target.classList.contains('session-time-input')) {
+                            syncPrimaryInput();
+                        }
+                    });
+
+                    wrapper.addEventListener('change', function(event) {
+                        if (event.target.classList.contains('session-time-input')) {
+                            syncPrimaryInput();
+                        }
+                    });
+
+                    toggleRemoveButtons();
+                    syncPrimaryInput();
+                });
+            }, 0);
         });
         </script>
         <?php

@@ -608,6 +608,8 @@
       var $sync = $( '[name="' + cfg.syncTo + '"]' ).first();
 
       if ( ! $wrap.length ) { return; }
+      if ( '1' === String( $wrap.attr( 'data-mcems-time-ui-bound' ) || '' ) ) { return; }
+      $wrap.attr( 'data-mcems-time-ui-bound', '1' );
 
       this._toggleRemoveButtons( $wrap );
 
