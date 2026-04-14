@@ -615,15 +615,15 @@
         this._syncPrimary( $sync, $wrap );
       }
 
-      $wrap.on( 'input change', '.mcems-schedule-time-input', function() {
+      $wrap.on( 'input change', '.session-time-input', function() {
         if ( $sync.length ) {
           MCEMSMultiSchedule._syncPrimary( $sync, $wrap );
         }
       } );
 
-      $wrap.on( 'click', '.mcems-add-time-row', function( e ) {
+      $wrap.on( 'click', '.add-time-btn', function( e ) {
         e.preventDefault();
-        var $rows = $wrap.find( '.mcems-schedule-time-rows' );
+        var $rows = $wrap.find( '.session-time-rows' );
         var $row = MCEMSMultiSchedule._buildRow();
         $rows.append( $row );
         MCEMSMultiSchedule._toggleRemoveButtons( $wrap );
@@ -632,12 +632,12 @@
         }
       } );
 
-      $wrap.on( 'click', '.mcems-remove-time-row', function( e ) {
+      $wrap.on( 'click', '.remove-time-btn', function( e ) {
         e.preventDefault();
-        var $rows = $wrap.find( '.mcems-schedule-time-row' );
+        var $rows = $wrap.find( '.session-time-row' );
         if ( $rows.length <= 1 ) { return; }
 
-        $( this ).closest( '.mcems-schedule-time-row' ).remove();
+        $( this ).closest( '.session-time-row' ).remove();
         MCEMSMultiSchedule._toggleRemoveButtons( $wrap );
         if ( $sync.length ) {
           MCEMSMultiSchedule._syncPrimary( $sync, $wrap );
@@ -654,9 +654,9 @@
       var cfg = mcemsMultiSchedule || {};
       var inputName = cfg.inputName || 'session_times[]';
       var removeLabel = cfg.removeLabel || 'Remove';
-      var $row = $( '<div class="mcems-schedule-time-row">' );
-      $( '<input type="time" class="mcems-schedule-time-input" step="60">' ).attr( 'name', inputName ).appendTo( $row );
-      $( '<button type="button" class="button-link-delete mcems-remove-time-row"></button>' ).text( removeLabel ).appendTo( $row );
+      var $row = $( '<div class="session-time-row">' );
+      $( '<input type="time" class="session-time-input" step="60">' ).attr( 'name', inputName ).appendTo( $row );
+      $( '<button type="button" class="button-link-delete remove-time-btn"></button>' ).text( removeLabel ).appendTo( $row );
       return $row;
     },
 
@@ -668,7 +668,7 @@
      */
     _syncPrimary: function( $sync, $wrap ) {
       var first = '';
-      var $inputs = $wrap.find( '.mcems-schedule-time-input' );
+      var $inputs = $wrap.find( '.session-time-input' );
 
       for ( var i = 0; i < $inputs.length; i++ ) {
         var t = ( $inputs.eq( i ).val() || '' ).trim();
@@ -687,9 +687,9 @@
      * @param {jQuery} $wrap Repeater wrapper.
      */
     _toggleRemoveButtons: function( $wrap ) {
-      var $rows = $wrap.find( '.mcems-schedule-time-row' );
+      var $rows = $wrap.find( '.session-time-row' );
       var disable = ( $rows.length <= 1 );
-      $rows.find( '.mcems-remove-time-row' ).prop( 'disabled', disable );
+      $rows.find( '.remove-time-btn' ).prop( 'disabled', disable );
     }
   };
 

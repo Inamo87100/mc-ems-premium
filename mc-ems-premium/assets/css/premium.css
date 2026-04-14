@@ -702,29 +702,29 @@ canvas {
    SESSION TIME REPEATER (Create Sessions)
    ======================================== */
 
-#mcems-schedule-times-repeater {
+.session-times-wrapper {
   width: 320px;
   max-width: 100%;
 }
 
-#mcems-schedule-times-repeater .mcems-schedule-time-rows {
+.session-times-wrapper .session-time-rows {
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-bottom: 8px;
 }
 
-#mcems-schedule-times-repeater .mcems-schedule-time-row {
+.session-times-wrapper .session-time-row {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-#mcems-schedule-times-repeater .mcems-schedule-time-input {
+.session-times-wrapper .session-time-input {
   width: 160px;
 }
 
-#mcems-schedule-times-repeater .mcems-remove-time-row[disabled] {
+.session-times-wrapper .remove-time-btn[disabled] {
   opacity: 0.5;
   cursor: not-allowed;
 }
