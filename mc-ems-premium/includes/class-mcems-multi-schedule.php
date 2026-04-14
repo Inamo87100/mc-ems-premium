@@ -463,10 +463,6 @@ class MCEMS_Multi_Schedule {
         update_post_meta( $post_id, $time_meta_key, $primary_time );
 
         $all_meta = get_post_meta( $post_id );
-        if ( ! is_array( $all_meta ) ) {
-            error_log( 'PREMIUM: Unable to read source session meta during multi-time sibling generation.' );
-            return;
-        }
 
         self::$is_generating_extra_sessions = true;
 
@@ -487,11 +483,6 @@ class MCEMS_Multi_Schedule {
 
                 if ( is_wp_error( $clone_id ) ) {
                     error_log( 'PREMIUM: Failed to create multi-time sibling session: ' . $clone_id->get_error_message() );
-                    continue;
-                }
-
-                if ( $clone_id <= 0 ) {
-                    error_log( 'PREMIUM: Failed to create multi-time sibling session: invalid post ID returned.' );
                     continue;
                 }
 
