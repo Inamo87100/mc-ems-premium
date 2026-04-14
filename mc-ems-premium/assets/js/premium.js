@@ -651,9 +651,12 @@
      * @return {jQuery}
      */
     _buildRow: function() {
+      var cfg = mcemsMultiSchedule || {};
+      var inputName = cfg.inputName || 'session_times[]';
+      var removeLabel = cfg.removeLabel || 'Remove';
       var $row = $( '<div class="mcems-schedule-time-row">' );
-      $( '<input type="time" name="session_times[]" class="mcems-schedule-time-input" step="60">' ).appendTo( $row );
-      $( '<button type="button" class="button-link-delete mcems-remove-time-row">Remove</button>' ).appendTo( $row );
+      $( '<input type="time" class="mcems-schedule-time-input" step="60">' ).attr( 'name', inputName ).appendTo( $row );
+      $( '<button type="button" class="button-link-delete mcems-remove-time-row"></button>' ).text( removeLabel ).appendTo( $row );
       return $row;
     },
 

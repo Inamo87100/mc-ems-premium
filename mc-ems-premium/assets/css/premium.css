@@ -726,7 +726,7 @@ canvas {
 
 #mcems-schedule-times-repeater .mcems-remove-time-row[disabled] {
   opacity: 0.5;
-  cursor: default;
+  cursor: not-allowed;
 }
 
 /* ========================================

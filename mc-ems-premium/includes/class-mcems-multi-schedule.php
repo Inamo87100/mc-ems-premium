@@ -100,7 +100,6 @@ class MCEMS_Multi_Schedule {
                         class="mcems-schedule-time-input"
                         value="<?php echo esc_attr( $value ); ?>"
                         step="60"
-                        required
                         <?php echo $disabled ? 'disabled' : ''; ?>
                     >
                     <button
@@ -188,8 +187,10 @@ class MCEMS_Multi_Schedule {
         // "Create sessions" page only.
         if ( $on_create_sessions ) {
             wp_localize_script( 'mcems-premium-js', 'mcemsMultiSchedule', [
-                'repeaterId' => 'mcems-schedule-times-repeater',
-                'syncTo'     => 'time',
+                'repeaterId'  => 'mcems-schedule-times-repeater',
+                'syncTo'      => 'time',
+                'inputName'   => self::TIMES_FIELD . '[]',
+                'removeLabel' => __( 'Remove', 'mc-ems' ),
             ] );
         }
     }
