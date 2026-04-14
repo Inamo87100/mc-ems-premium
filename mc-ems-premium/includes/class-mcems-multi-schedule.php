@@ -3,8 +3,8 @@
  * MC-EMS Premium – Multi-Schedule (Multiple Session Times)
  *
  * When the premium plugin is active, this class overrides the time input
- * field on the base plugin's "Create sessions" admin view with a textarea
- * that allows the administrator to enter multiple HH:MM times (one per line),
+ * field on the base plugin's "Create sessions" admin view with a repeatable
+ * list of HTML5 time inputs,
  * using the 'mcems_admin_create_session_time_field_html' filter provided by
  * the base plugin.
  *
@@ -36,8 +36,8 @@ class MCEMS_Multi_Schedule {
     /** Post type slug – mirrors MCEMEXCE_CPT_Sessioni_Esame::CPT. */
     const SESSION_CPT = 'mcemexce_session';
 
-    /** POST field name for the textarea containing multiple times. */
-    const TEXTAREA_FIELD = 'mcems_schedule_times_text';
+    /** POST field name for the repeatable list of session time values. */
+    const TIMES_FIELD = 'session_times';
 
     /**
      * Admin page slug for the base plugin's "Create sessions" page.
@@ -55,7 +55,7 @@ class MCEMS_Multi_Schedule {
         add_filter( 'mcems_admin_create_session_time_field_html', [ __CLASS__, 'filter_create_session_time_field_html' ], 10, 3 );
         add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_assets' ] );
 
-        // Save all scheduled times from the textarea when a session post is created
+        // Save all scheduled times from repeatable time inputs when a session post is created
         // via the "Create sessions" admin page.
         add_action( 'save_post_' . self::SESSION_CPT, [ __CLASS__, 'save_schedule_times' ], 20 );
         error_log( 'PREMIUM: Multi-schedule hooks registered.' );
@@ -66,7 +66,7 @@ class MCEMS_Multi_Schedule {
     // -------------------------------------------------------------------------
 
     /**
-     * Return a multi-time textarea for the base plugin's "Create sessions" view.
+     * Return repeatable time inputs for the base plugin's "Create sessions" view.
      *
      * Hooked onto 'mcems_admin_create_session_time_field_html', which is
      * applied by the base plugin on the "Create sessions" admin page only.
@@ -78,35 +78,49 @@ class MCEMS_Multi_Schedule {
      * @param string $html     Existing HTML (empty by default).
      * @param string $value    Default time value (if any) pre-set by the base plugin.
      * @param string $disabled 'disabled' attribute string, or empty.
-     * @return string          Textarea HTML to output in place of the time input.
+     * @return string          Repeatable time-input HTML to output in place of the time input.
      */
     public static function filter_create_session_time_field_html( string $html, string $value, string $disabled ): string {
-        error_log( 'PREMIUM: Overriding create-session time field with premium textarea.' );
+        error_log( 'PREMIUM: Overriding create-session time field with premium repeatable inputs.' );
         ob_start();
         ?>
-        <?php
-        /*
-         * Hidden input keeps the base plugin's 'time' POST field in sync
-         * with the first valid time from the textarea (handled by JS), so
-         * the base plugin's PHP save handler can read a single primary time
-         * while this plugin stores the full list of times in post meta.
-         */
-        ?>
+        <?php /* Keep base-plugin primary time in sync with the first repeatable time value. */ ?>
         <input
             type="hidden"
             name="time"
             value="<?php echo esc_attr( $value ); ?>"
             <?php echo $disabled ? 'disabled' : ''; ?>
         >
-        <textarea
-            id="mcems-schedule-times-textarea"
-            name="<?php echo esc_attr( self::TEXTAREA_FIELD ); ?>"
-            rows="5"
-            placeholder="<?php esc_attr_e( '09:00', 'mc-ems' ); ?>"
-            <?php echo $disabled ? 'disabled' : ''; ?>
-        ><?php echo esc_textarea( $value ); ?></textarea>
+        <div id="mcems-schedule-times-repeater" class="mcems-schedule-times-repeater">
+            <div class="mcems-schedule-time-rows">
+                <div class="mcems-schedule-time-row">
+                    <input
+                        type="time"
+                        name="<?php echo esc_attr( self::TIMES_FIELD ); ?>[]"
+                        class="mcems-schedule-time-input"
+                        value="<?php echo esc_attr( $value ); ?>"
+                        step="60"
+                        <?php echo $disabled ? 'disabled' : ''; ?>
+                    >
+                    <button
+                        type="button"
+                        class="button-link-delete mcems-remove-time-row"
+                        <?php echo $disabled ? 'disabled' : ''; ?>
+                    >
+                        <?php esc_html_e( 'Remove', 'mc-ems' ); ?>
+                    </button>
+                </div>
+            </div>
+            <button
+                type="button"
+                class="button mcems-add-time-row"
+                <?php echo $disabled ? 'disabled' : ''; ?>
+            >
+                <?php esc_html_e( 'Add time', 'mc-ems' ); ?>
+            </button>
+        </div>
         <p class="description">
-            <?php esc_html_e( 'Enter one time per line in HH:MM 24-hour format (e.g. 09:00). Empty lines are ignored.', 'mc-ems' ); ?>
+            <?php esc_html_e( 'Add one or more session times using the time fields below.', 'mc-ems' ); ?>
         </p>
         <?php
         return ob_get_clean();
@@ -169,17 +183,14 @@ class MCEMS_Multi_Schedule {
             'nonce'    => wp_create_nonce( 'mcems_premium_nonce' ),
         ] );
 
-        // Provide configuration for the multi-time textarea on the "Create sessions"
-        // page only.  This enables the JS module to sync the hidden base-plugin
-        // time field and to validate each line of the textarea before submission.
+        // Provide configuration for repeatable multi-time inputs on the
+        // "Create sessions" page only.
         if ( $on_create_sessions ) {
             wp_localize_script( 'mcems-premium-js', 'mcemsMultiSchedule', [
-                'textareaId'        => 'mcems-schedule-times-textarea',
-                'syncTo'            => 'time',
-                /* translators: %s is the invalid time value entered by the user */
-                'errorInvalidTime'  => __( 'Invalid time "%s". Use 24-hour HH:MM format (e.g. 09:00).', 'mc-ems' ),
-                /* translators: shown when the textarea is completely empty */
-                'errorEmptyTimes'   => __( 'Enter at least one time in HH:MM format (e.g. 09:00).', 'mc-ems' ),
+                'repeaterId'  => 'mcems-schedule-times-repeater',
+                'syncTo'      => 'time',
+                'inputName'   => self::TIMES_FIELD . '[]',
+                'removeLabel' => __( 'Remove', 'mc-ems' ),
             ] );
         }
     }
@@ -189,32 +200,24 @@ class MCEMS_Multi_Schedule {
     // -------------------------------------------------------------------------
 
     /**
-     * Save all valid times from the multi-time textarea into post meta.
+     * Save all submitted times from repeatable session-time fields into post meta.
      *
      * Hooked onto 'save_post_mcemexce_session' (priority 20) so it runs after
      * the base plugin's own save logic.  Only acts when the Create sessions
-     * form is being processed (i.e. the premium textarea field is present in
+     * form is being processed (i.e. the premium repeatable time fields are present in
      * the POST data).
-     *
-     * Parsing rules (NF-Tools pattern):
-     *  1. Split the raw textarea value on newlines.
-     *  2. Trim leading/trailing whitespace from each line.
-     *  3. Skip empty lines silently.
-     *  4. Accept only lines matching 24-hour HH:MM (00:00 – 23:59).
-     *  5. Accumulate all valid times; silently skip invalid lines
-     *     (the JS layer prevents the form from being submitted with invalid lines).
      *
      * @param int $post_id The session post being saved.
      */
     public static function save_schedule_times( int $post_id ): void {
-        // Only process requests that include the premium textarea field.
+        // Only process requests that include premium repeatable time fields.
         // Nonce verification is intentionally omitted here: this hook fires
         // inside the base plugin's form-submission flow, which already verifies
         // its own nonce before calling wp_insert_post() (and therefore before
         // this hook runs).  Any other context where save_post fires will not
-        // have TEXTAREA_FIELD in $_POST, so the guard below exits early.
+        // have TIMES_FIELD in $_POST, so the guard below exits early.
         // phpcs:ignore WordPress.Security.NonceVerification.Missing
-        if ( ! isset( $_POST[ self::TEXTAREA_FIELD ] ) ) {
+        if ( ! isset( $_POST[ self::TIMES_FIELD ] ) || ! is_array( $_POST[ self::TIMES_FIELD ] ) ) {
             return;
         }
 
@@ -229,24 +232,16 @@ class MCEMS_Multi_Schedule {
         }
 
         // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce checked by base plugin.
-        $raw   = sanitize_textarea_field( wp_unslash( $_POST[ self::TEXTAREA_FIELD ] ) );
-        $lines = explode( "\n", $raw );
+        $raw_times = wp_unslash( $_POST[ self::TIMES_FIELD ] );
         $times = [];
 
-        // Step 1-5: iterate, trim, skip empty, validate, accumulate.
-        foreach ( $lines as $line ) {
-            $t = trim( $line );
-
-            if ( '' === $t ) {
-                continue; // skip empty / whitespace-only lines
+        foreach ( $raw_times as $raw_time ) {
+            $time = sanitize_text_field( (string) $raw_time );
+            if ( '' === $time ) {
+                continue;
             }
 
-            // Accept only valid 24-hour HH:MM values (00:00 – 23:59).
-            if ( preg_match( '/^(?:[01]\d|2[0-3]):[0-5]\d$/', $t ) ) {
-                $times[] = $t;
-            }
-            // Non-matching non-empty lines are silently skipped; the JS layer
-            // prevents submission of invalid times before they reach PHP.
+            $times[] = $time;
         }
 
         if ( ! empty( $times ) ) {
