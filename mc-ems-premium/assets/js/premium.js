@@ -591,145 +591,102 @@
   // ========================================
 
   /**
-   * Multi-Schedule – Textarea mode
+   * Multi-Schedule – repeatable HTML5 time inputs for "Create sessions".
    *
-   * When the premium plugin is active, the "Create sessions" admin page renders
-   * a textarea where the administrator can enter multiple HH:MM times (one per
-   * line).  This module:
-   *   1. Keeps a hidden <input name="time"> in sync with the first valid time
-   *      in the textarea so the base plugin's save handler reads a primary time.
-   *   2. Validates the textarea on form submit: shows an error only when a
-   *      non-empty line is NOT a valid 24-hour HH:MM time (empty lines are
-   *      silently ignored).
-   *
-   * Requires the mcemsMultiSchedule object localised by
-   * MCEMS_Multi_Schedule::enqueue_assets() on the Create sessions page:
-   *   {
-   *     textareaId:      string,  // id of the premium textarea
-   *     syncTo:          string,  // name attr of the hidden base-plugin time input
-   *     errorInvalidTime: string, // translatable error template ("%s" = bad value)
-   *   }
-   *
-   * NOTE: The "Edit session" metabox is NOT affected by this module.
+   * The premium override renders a repeatable list of <input type="time">
+   * controls with name="session_times[]". This module handles add/remove
+   * interactions and keeps the hidden base-plugin "time" input synced to
+   * the first non-empty time field.
    */
   const MCEMSMultiSchedule = {
 
     init: function() {
       if ( typeof mcemsMultiSchedule === 'undefined' ) { return; }
 
-      var cfg      = mcemsMultiSchedule;
-      var $textarea = $( '#' + cfg.textareaId );
-      var $sync     = $( '[name="' + cfg.syncTo + '"]' ).first();
+      var cfg   = mcemsMultiSchedule;
+      var $wrap = $( '#' + cfg.repeaterId );
+      var $sync = $( '[name="' + cfg.syncTo + '"]' ).first();
 
-      if ( ! $textarea.length ) { return; }
+      if ( ! $wrap.length ) { return; }
 
-      // Sync the hidden time input on page load so the base plugin already has
-      // a valid primary time if the textarea is pre-populated.
+      this._toggleRemoveButtons( $wrap );
+
       if ( $sync.length ) {
-        this._syncPrimary( $sync, $textarea );
+        this._syncPrimary( $sync, $wrap );
       }
 
-      // Keep the hidden input in sync as the user types.
-      $textarea.on( 'input change', function() {
+      $wrap.on( 'input change', '.mcems-schedule-time-input', function() {
         if ( $sync.length ) {
-          MCEMSMultiSchedule._syncPrimary( $sync, $textarea );
+          MCEMSMultiSchedule._syncPrimary( $sync, $wrap );
         }
       } );
 
-      // Validate before the form is submitted.  Only block submission when a
-      // non-empty line is actually invalid; empty lines are silently ignored.
-      $textarea.closest( 'form' ).on( 'submit', function( e ) {
-        var msg = MCEMSMultiSchedule._validateTimes( $textarea.val() );
-        if ( msg ) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          MCEMSMultiSchedule._showError( $textarea, msg );
-          $textarea.focus();
-        } else {
-          MCEMSMultiSchedule._clearError( $textarea );
+      $wrap.on( 'click', '.mcems-add-time-row', function( e ) {
+        e.preventDefault();
+        var $rows = $wrap.find( '.mcems-schedule-time-rows' );
+        var $row = MCEMSMultiSchedule._buildRow();
+        $rows.append( $row );
+        MCEMSMultiSchedule._toggleRemoveButtons( $wrap );
+        if ( $sync.length ) {
+          MCEMSMultiSchedule._syncPrimary( $sync, $wrap );
+        }
+      } );
+
+      $wrap.on( 'click', '.mcems-remove-time-row', function( e ) {
+        e.preventDefault();
+        var $rows = $wrap.find( '.mcems-schedule-time-row' );
+        if ( $rows.length <= 1 ) { return; }
+
+        $( this ).closest( '.mcems-schedule-time-row' ).remove();
+        MCEMSMultiSchedule._toggleRemoveButtons( $wrap );
+        if ( $sync.length ) {
+          MCEMSMultiSchedule._syncPrimary( $sync, $wrap );
         }
       } );
     },
 
     /**
-     * Validate each non-empty, trimmed line as a 24-hour HH:MM time.
+     * Build a new repeatable row with one HTML5 time input.
      *
-     * Returns an error string when:
-     *   - All lines are empty (no time was entered at all), OR
-     *   - At least one non-empty line is not a valid 24-hour HH:MM value.
-     * Returns '' when at least one valid time is present and no line is invalid.
-     *
-     * @param  {string} value  Full textarea text.
-     * @return {string}        Error message, or empty string when all lines are valid.
+     * @return {jQuery}
      */
-    _validateTimes: function( value ) {
-      var lines    = value.split( '\n' );
-      var hasValid = false;
-
-      for ( var i = 0; i < lines.length; i++ ) {
-        var t = lines[ i ].trim();
-        if ( t === '' ) { continue; } // skip empty / whitespace-only lines
-
-        if ( ! /^(?:[01]\d|2[0-3]):[0-5]\d$/.test( t ) ) {
-          // At least one non-empty line is not a valid HH:MM time.
-          var tpl = ( mcemsMultiSchedule.errorInvalidTime || 'Invalid time "%s". Use HH:MM format.' );
-          return tpl.replace( '%s', t );
-        }
-
-        hasValid = true; // line passed: valid HH:MM
-      }
-
-      // All non-empty lines are valid, but there were none — the textarea is blank.
-      if ( ! hasValid ) {
-        return ( mcemsMultiSchedule.errorEmptyTimes || 'Enter at least one time in HH:MM format (e.g. 09:00).' );
-      }
-
-      return ''; // at least one valid time; no invalid lines found
+    _buildRow: function() {
+      var $row = $( '<div class="mcems-schedule-time-row">' );
+      $( '<input type="time" name="session_times[]" class="mcems-schedule-time-input" step="60">' ).appendTo( $row );
+      $( '<button type="button" class="button-link-delete mcems-remove-time-row">Remove</button>' ).appendTo( $row );
+      return $row;
     },
 
     /**
-     * Mirror the first valid HH:MM time from the textarea to the hidden base
-     * input so the base plugin's save handler reads the correct primary time.
+     * Mirror the first non-empty time input to the hidden base-plugin time input.
      *
      * @param {jQuery} $sync     Hidden input whose value is kept in sync.
-     * @param {jQuery} $textarea The premium "Session Times" textarea.
+     * @param {jQuery} $wrap     Repeater wrapper.
      */
-    _syncPrimary: function( $sync, $textarea ) {
-      var lines = $textarea.val().split( '\n' );
+    _syncPrimary: function( $sync, $wrap ) {
       var first = '';
-      for ( var i = 0; i < lines.length; i++ ) {
-        var t = lines[ i ].trim();
-        if ( /^(?:[01]\d|2[0-3]):[0-5]\d$/.test( t ) ) {
+      var $inputs = $wrap.find( '.mcems-schedule-time-input' );
+
+      for ( var i = 0; i < $inputs.length; i++ ) {
+        var t = ( $inputs.eq( i ).val() || '' ).trim();
+        if ( t ) {
           first = t;
           break;
         }
       }
+
       $sync.val( first );
     },
 
     /**
-     * Display an inline error message below the textarea.
+     * Keep remove buttons disabled when only one row is available.
      *
-     * @param {jQuery} $textarea Target textarea element.
-     * @param {string} message   Error text to display.
+     * @param {jQuery} $wrap Repeater wrapper.
      */
-    _showError: function( $textarea, message ) {
-      var $err = $textarea.next( '.mcems-time-error' );
-      if ( ! $err.length ) {
-        $err = $( '<p class="mcems-time-error">' ).insertAfter( $textarea );
-      }
-      $err.text( message );
-      $textarea.css( 'border-color', '#dc3545' );
-    },
-
-    /**
-     * Remove any inline error message shown below the textarea.
-     *
-     * @param {jQuery} $textarea Target textarea element.
-     */
-    _clearError: function( $textarea ) {
-      $textarea.next( '.mcems-time-error' ).remove();
-      $textarea.css( 'border-color', '' );
+    _toggleRemoveButtons: function( $wrap ) {
+      var $rows = $wrap.find( '.mcems-schedule-time-row' );
+      var disable = ( $rows.length <= 1 );
+      $rows.find( '.mcems-remove-time-row' ).prop( 'disabled', disable );
     }
   };
 
