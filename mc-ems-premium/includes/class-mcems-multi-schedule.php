@@ -154,7 +154,7 @@ class MCEMS_Multi_Schedule {
                 var syncInputName = wrapper.getAttribute('data-sync-input-name') || 'time';
                 var syncInput = document.querySelector('input[name="' + syncInputName + '"]');
 
-                var getRows = function() {
+                var getRowElements = function() {
                     return rowsContainer.querySelectorAll('.session-time-row');
                 };
 
@@ -177,13 +177,13 @@ class MCEMS_Multi_Schedule {
                 };
 
                 var toggleRemoveButtons = function() {
-                    var disable = getRows().length <= 1;
+                    var disable = getRowElements().length <= 1;
                     rowsContainer.querySelectorAll('.remove-time-btn').forEach(function(button) {
                         button.disabled = disable;
                     });
                 };
 
-                var buildRow = function() {
+                var createRowElement = function() {
                     var row = document.createElement('div');
                     row.className = 'session-time-row';
 
@@ -207,7 +207,7 @@ class MCEMS_Multi_Schedule {
                     var addButton = event.target.closest('.add-time-btn');
                     if (addButton && wrapper.contains(addButton)) {
                         event.preventDefault();
-                        var newRow = buildRow();
+                        var newRow = createRowElement();
                         rowsContainer.appendChild(newRow);
                         toggleRemoveButtons();
                         syncPrimaryInput();
@@ -218,7 +218,7 @@ class MCEMS_Multi_Schedule {
                     var removeButton = event.target.closest('.remove-time-btn');
                     if (removeButton && wrapper.contains(removeButton)) {
                         event.preventDefault();
-                        if (getRows().length <= 1) {
+                        if (getRowElements().length <= 1) {
                             return;
                         }
 
