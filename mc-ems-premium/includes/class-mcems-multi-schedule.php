@@ -44,6 +44,12 @@ class MCEMS_Multi_Schedule {
     const GENERATED_FROM_META = '_mcems_premium_generated_from';
 
     /**
+     * Strict 24-hour HH:MM time validation pattern.
+     * Accepted range: 00:00 to 23:59.
+     */
+    const TIME_24H_PATTERN = '/^(?:[01]\d|2[0-3]):[0-5]\d$/';
+
+    /**
      * Admin page slug for the base plugin's "Create sessions" page.
      * Used to scope asset enqueuing to that page only.
      */
@@ -409,7 +415,7 @@ class MCEMS_Multi_Schedule {
                 continue;
             }
 
-            if ( ! preg_match( '/^(?:[01]\d|2[0-3]):[0-5]\d$/', $time ) ) {
+            if ( ! preg_match( self::TIME_24H_PATTERN, $time ) ) {
                 continue;
             }
 
@@ -452,6 +458,7 @@ class MCEMS_Multi_Schedule {
         update_post_meta( $post_id, $time_meta_key, $primary_time );
 
         if ( ! ( $post instanceof \WP_Post ) ) {
+            error_log( 'PREMIUM: Unexpected post object type during multi-time sibling generation.' );
             return;
         }
 
@@ -526,6 +533,8 @@ class MCEMS_Multi_Schedule {
             '_edit_last',
         ];
 
+        // Developers can extend/replace excluded keys by returning a string[].
+        // Hook name: mcems_premium_multitime_clone_excluded_meta_keys.
         $filtered = apply_filters( 'mcems_premium_multitime_clone_excluded_meta_keys', $default, $time_meta_key );
         return is_array( $filtered ) ? $filtered : $default;
     }
