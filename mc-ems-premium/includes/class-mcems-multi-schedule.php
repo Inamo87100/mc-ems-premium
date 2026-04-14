@@ -435,7 +435,12 @@ class MCEMS_Multi_Schedule {
      */
     private static function create_additional_sessions_for_new_creation( int $post_id, $post, array $times, bool $update ): void {
         // Requirement scope: create flow only; never generate siblings on edit.
-        if ( $update || count( $times ) <= 1 || ! class_exists( 'MCEMEXCE_CPT_Sessioni_Esame' ) ) {
+        if ( $update || count( $times ) <= 1 ) {
+            return;
+        }
+
+        if ( ! class_exists( 'MCEMEXCE_CPT_Sessioni_Esame' ) ) {
+            error_log( 'PREMIUM: Base session class missing; skipping multi-time sibling generation.' );
             return;
         }
 
@@ -472,12 +477,20 @@ class MCEMS_Multi_Schedule {
                     'menu_order'     => (int) $post->menu_order,
                 ], true );
 
-                if ( is_wp_error( $clone_id ) || $clone_id <= 0 ) {
+                if ( is_wp_error( $clone_id ) ) {
+                    error_log( 'PREMIUM: Failed to create multi-time sibling session: ' . $clone_id->get_error_message() );
                     continue;
                 }
 
+                if ( $clone_id <= 0 ) {
+                    error_log( 'PREMIUM: Failed to create multi-time sibling session: invalid post ID returned.' );
+                    continue;
+                }
+
+                $excluded_meta_keys = self::get_clone_excluded_meta_keys( $time_meta_key );
+
                 foreach ( $all_meta as $meta_key => $meta_values ) {
-                    if ( in_array( $meta_key, [ $time_meta_key, self::META_KEY, self::GENERATED_FROM_META, '_edit_lock', '_edit_last' ], true ) ) {
+                    if ( in_array( $meta_key, $excluded_meta_keys, true ) ) {
                         continue;
                     }
 
@@ -493,6 +506,28 @@ class MCEMS_Multi_Schedule {
         } finally {
             self::$is_generating_extra_sessions = false;
         }
+    }
+
+    /**
+     * Return meta keys excluded from sibling-session cloning.
+     *
+     * A filter is exposed so projects can extend this safely if they introduce
+     * additional internal/session-specific meta keys that must not be copied.
+     *
+     * @param string $time_meta_key Meta key used for the single session time.
+     * @return string[]
+     */
+    private static function get_clone_excluded_meta_keys( string $time_meta_key ): array {
+        $default = [
+            $time_meta_key,
+            self::META_KEY,
+            self::GENERATED_FROM_META,
+            '_edit_lock',
+            '_edit_last',
+        ];
+
+        $filtered = apply_filters( 'mcems_premium_multitime_clone_excluded_meta_keys', $default, $time_meta_key );
+        return is_array( $filtered ) ? $filtered : $default;
     }
 
     // -------------------------------------------------------------------------
