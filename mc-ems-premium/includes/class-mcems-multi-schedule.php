@@ -58,6 +58,7 @@ class MCEMS_Multi_Schedule {
         // Save all scheduled times from the textarea when a session post is created
         // via the "Create sessions" admin page.
         add_action( 'save_post_' . self::SESSION_CPT, [ __CLASS__, 'save_schedule_times' ], 20 );
+        error_log( 'PREMIUM: Multi-schedule hooks registered.' );
     }
 
     // -------------------------------------------------------------------------
@@ -80,6 +81,7 @@ class MCEMS_Multi_Schedule {
      * @return string          Textarea HTML to output in place of the time input.
      */
     public static function filter_create_session_time_field_html( string $html, string $value, string $disabled ): string {
+        error_log( 'PREMIUM: Overriding create-session time field with premium textarea.' );
         ob_start();
         ?>
         <?php
@@ -249,6 +251,9 @@ class MCEMS_Multi_Schedule {
 
         if ( ! empty( $times ) ) {
             update_post_meta( $post_id, self::META_KEY, $times );
+            error_log( 'PREMIUM: Saved premium multi-schedule times for session post.' );
+        } else {
+            error_log( 'PREMIUM: No valid premium multi-schedule times found during save.' );
         }
     }
 

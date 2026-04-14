@@ -642,6 +642,7 @@
         var msg = MCEMSMultiSchedule._validateTimes( $textarea.val() );
         if ( msg ) {
           e.preventDefault();
+          e.stopImmediatePropagation();
           MCEMSMultiSchedule._showError( $textarea, msg );
           $textarea.focus();
         } else {

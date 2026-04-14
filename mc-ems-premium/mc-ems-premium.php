@@ -45,6 +45,7 @@ register_deactivation_hook(__FILE__, ['MCEMS_License', 'deactivate']);
 final class EMS_Premium_Bootstrap {
 
     public static function init(): void {
+        add_action('plugins_loaded', [__CLASS__, 'boot_unlimited_limits'], 1);
         add_action('plugins_loaded', [__CLASS__, 'boot'], 20);
         add_action('admin_notices', [__CLASS__, 'notice_missing_base']);
     }
@@ -85,7 +86,6 @@ final class EMS_Premium_Bootstrap {
         // The site and the free plugin are never affected.
         if (!MCEMS_License::is_valid()) return;
 
-        require_once plugin_dir_path(__FILE__) . 'includes/class-mcems-unlimited-limits.php';
         require_once plugin_dir_path(__FILE__) . 'includes/class-mcems-bookings-list.php';
         require_once plugin_dir_path(__FILE__) . 'includes/class-mcems-ajax.php';
 
@@ -100,6 +100,18 @@ final class EMS_Premium_Bootstrap {
 
         if (class_exists('MCEMS_Premium_Ajax')) {
             MCEMS_Premium_Ajax::init();
+        }
+    }
+
+    public static function boot_unlimited_limits(): void {
+        if (!self::base_active()) return;
+        if (!MCEMS_License::is_valid()) return;
+
+        require_once plugin_dir_path(__FILE__) . 'includes/class-mcems-unlimited-limits.php';
+
+        if (class_exists('MCEMS_Unlimited_Limits')) {
+            MCEMS_Unlimited_Limits::init();
+            error_log('PREMIUM: Unlimited limits booted early on plugins_loaded.');
         }
     }
 }
