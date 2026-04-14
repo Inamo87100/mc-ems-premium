@@ -75,6 +75,8 @@ class MCEMS_Multi_Schedule {
 
         // Save all scheduled times from repeatable time inputs when a session post is created
         // via the "Create sessions" admin page.
+        // Uses all 3 save_post args so create-only sibling generation can rely
+        // on $post details and the $update flag.
         add_action( 'save_post_' . self::SESSION_CPT, [ __CLASS__, 'save_schedule_times' ], 20, 3 );
         error_log( 'PREMIUM: Multi-schedule hooks registered.' );
     }
@@ -455,6 +457,7 @@ class MCEMS_Multi_Schedule {
             return;
         }
 
+        // First valid time is assigned to the base-created session post.
         $primary_time = $times[0];
         $extra_times  = array_slice( $times, 1 );
         $time_meta_key = MCEMEXCE_CPT_Sessioni_Esame::MK_TIME;
@@ -471,14 +474,14 @@ class MCEMS_Multi_Schedule {
                 $clone_id = wp_insert_post( [
                     'post_type'      => self::SESSION_CPT,
                     'post_status'    => $post->post_status,
-                    'post_author'    => (int) $post->post_author,
+                    'post_author'    => $post->post_author,
                     'post_title'     => $post->post_title,
                     'post_content'   => $post->post_content,
                     'post_excerpt'   => $post->post_excerpt,
-                    'post_parent'    => (int) $post->post_parent,
+                    'post_parent'    => $post->post_parent,
                     'comment_status' => $post->comment_status,
                     'ping_status'    => $post->ping_status,
-                    'menu_order'     => (int) $post->menu_order,
+                    'menu_order'     => $post->menu_order,
                 ], true );
 
                 if ( is_wp_error( $clone_id ) ) {
