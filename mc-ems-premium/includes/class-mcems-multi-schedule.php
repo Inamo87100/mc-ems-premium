@@ -446,7 +446,7 @@ class MCEMS_Multi_Schedule {
      */
     private static function create_additional_sessions_for_new_creation( int $post_id, \WP_Post $post, array $times, bool $update ): void {
         // Requirement scope: create flow only; never generate siblings on edit.
-        if ( $update || count( $times ) <= 1 ) {
+        if ( empty( $times ) || $update || count( $times ) <= 1 ) {
             return;
         }
 
@@ -502,8 +502,8 @@ class MCEMS_Multi_Schedule {
                         continue;
                     }
 
-                    // Defensive normalization: custom filters/plugins can alter
-                    // get_post_meta() output shape, so force iterable values.
+                    // Defensive normalization for unexpected non-standard payloads
+                    // (for example, during tests/mocks or third-party overrides).
                     if ( ! is_array( $meta_values ) ) {
                         $meta_values = [ $meta_values ];
                     }
