@@ -502,12 +502,6 @@ class MCEMS_Multi_Schedule {
                         continue;
                     }
 
-                    // Defensive normalization for unexpected non-standard payloads
-                    // (for example, during tests/mocks or third-party overrides).
-                    if ( ! is_array( $meta_values ) ) {
-                        $meta_values = [ $meta_values ];
-                    }
-
                     foreach ( $meta_values as $meta_value ) {
                         add_post_meta( $clone_id, $meta_key, maybe_unserialize( $meta_value ) );
                     }
@@ -528,7 +522,8 @@ class MCEMS_Multi_Schedule {
      * A filter is exposed so projects can extend this safely if they introduce
      * additional internal/session-specific meta keys that must not be copied.
      *
-     * @param string $time_meta_key Meta key used for the single session time.
+     * @param string $time_meta_key Time meta key that must be excluded from cloning
+     *                              so sibling sessions can store their own time value.
      * @return string[]
      */
     private static function get_clone_excluded_meta_keys( string $time_meta_key ): array {
