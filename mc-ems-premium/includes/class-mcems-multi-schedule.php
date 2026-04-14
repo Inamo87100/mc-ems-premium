@@ -352,11 +352,11 @@ class MCEMS_Multi_Schedule {
      * one sibling session for each additional valid time so that every selected
      * day receives sessions for all submitted times (day × time).
      *
-     * @param int        $post_id The session post being saved.
-     * @param \WP_Post   $post    Post object being saved.
-     * @param bool       $update  Whether this save is an existing-post update.
+     * @param int      $post_id The session post being saved.
+     * @param \WP_Post $post    Post object being saved.
+     * @param bool     $update  Whether this save is an existing-post update.
      */
-    public static function save_schedule_times( int $post_id, $post, bool $update ): void {
+    public static function save_schedule_times( int $post_id, \WP_Post $post, bool $update ): void {
         // Only process requests that include premium repeatable time fields.
         // Nonce verification is intentionally omitted here: this hook fires
         // inside the base plugin's form-submission flow, which already verifies
@@ -440,11 +440,11 @@ class MCEMS_Multi_Schedule {
      * excluded by checking $update.
      *
      * @param int      $post_id Original session post ID created by the base flow.
-     * @param mixed    $post    Post object for the saved post.
+     * @param \WP_Post $post    Post object for the saved post.
      * @param string[] $times   Validated list of submitted times.
      * @param bool     $update  True when editing an existing post.
      */
-    private static function create_additional_sessions_for_new_creation( int $post_id, $post, array $times, bool $update ): void {
+    private static function create_additional_sessions_for_new_creation( int $post_id, \WP_Post $post, array $times, bool $update ): void {
         // Requirement scope: create flow only; never generate siblings on edit.
         if ( $update || count( $times ) <= 1 ) {
             return;
@@ -461,11 +461,6 @@ class MCEMS_Multi_Schedule {
 
         // Ensure the base-created post keeps the first valid time.
         update_post_meta( $post_id, $time_meta_key, $primary_time );
-
-        if ( ! ( $post instanceof \WP_Post ) ) {
-            error_log( 'PREMIUM: Unexpected post object type during multi-time sibling generation.' );
-            return;
-        }
 
         $all_meta = get_post_meta( $post_id );
         if ( ! is_array( $all_meta ) ) {
@@ -507,6 +502,8 @@ class MCEMS_Multi_Schedule {
                         continue;
                     }
 
+                    // Defensive normalization: custom filters/plugins can alter
+                    // get_post_meta() output shape, so force iterable values.
                     if ( ! is_array( $meta_values ) ) {
                         $meta_values = [ $meta_values ];
                     }
