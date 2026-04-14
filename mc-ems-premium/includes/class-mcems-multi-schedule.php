@@ -49,6 +49,9 @@ class MCEMS_Multi_Schedule {
      */
     const TIME_24H_PATTERN = '/^(?:[01]\d|2[0-3]):[0-5]\d$/';
 
+    /** Minimum allowed seats/capacity value when normalising numeric metadata. */
+    const MIN_SESSION_CAPACITY = 1;
+
     /**
      * Admin page slug for the base plugin's "Create sessions" page.
      * Used to scope asset enqueuing to that page only.
@@ -466,6 +469,24 @@ class MCEMS_Multi_Schedule {
         update_post_meta( $post_id, $time_meta_key, $primary_time );
 
         $all_meta = get_post_meta( $post_id );
+        $date_meta_key = self::get_defined_base_meta_key( [ 'MK_DATE', 'L_MK_DATE' ] );
+        $exam_meta_key = self::get_defined_base_meta_key( [ 'MK_EXAM_ID', 'MK_COURSE_ID' ] );
+        $capacity_meta_key = self::get_defined_base_meta_key( [ 'MK_CAPACITY', 'L_MK_CAPACITY' ] );
+
+        $session_date = '';
+        if ( null !== $date_meta_key ) {
+            $session_date = self::sanitize_and_validate_date( (string) get_post_meta( $post_id, $date_meta_key, true ) );
+        }
+
+        $session_exam_id = 0;
+        if ( null !== $exam_meta_key ) {
+            $session_exam_id = absint( get_post_meta( $post_id, $exam_meta_key, true ) );
+        }
+
+        $session_capacity = 0;
+        if ( null !== $capacity_meta_key ) {
+            $session_capacity = max( self::MIN_SESSION_CAPACITY, absint( get_post_meta( $post_id, $capacity_meta_key, true ) ) );
+        }
 
         self::$is_generating_extra_sessions = true;
 
@@ -475,7 +496,7 @@ class MCEMS_Multi_Schedule {
                     'post_type'      => self::SESSION_CPT,
                     'post_status'    => $post->post_status,
                     'post_author'    => $post->post_author,
-                    'post_title'     => $post->post_title,
+                    'post_title'     => self::build_session_title( $session_date, $time, $post->post_title ),
                     'post_content'   => $post->post_content,
                     'post_excerpt'   => $post->post_excerpt,
                     'post_parent'    => $post->post_parent,
@@ -502,6 +523,17 @@ class MCEMS_Multi_Schedule {
                 }
 
                 update_post_meta( $clone_id, $time_meta_key, $time );
+                if ( null !== $date_meta_key && '' !== $session_date ) {
+                    update_post_meta( $clone_id, $date_meta_key, $session_date );
+                }
+                if ( null !== $exam_meta_key ) {
+                    update_post_meta( $clone_id, $exam_meta_key, $session_exam_id );
+                }
+                if ( null !== $capacity_meta_key ) {
+                    update_post_meta( $clone_id, $capacity_meta_key, $session_capacity );
+                }
+
+                self::clone_session_taxonomies( $post_id, (int) $clone_id );
                 update_post_meta( $clone_id, self::META_KEY, $times );
                 update_post_meta( $clone_id, self::GENERATED_FROM_META, $post_id );
             }
@@ -533,6 +565,133 @@ class MCEMS_Multi_Schedule {
         // Hook name: mcems_premium_multitime_clone_excluded_meta_keys.
         $filtered = apply_filters( 'mcems_premium_multitime_clone_excluded_meta_keys', $default, $time_meta_key );
         return is_array( $filtered ) ? $filtered : $default;
+    }
+
+    /**
+     * Return the first defined base-plugin meta-key constant from a candidate list.
+     *
+     * This keeps premium compatible across base-plugin versions where exam/capacity
+     * constants can have different names.
+     *
+     * @param string[] $constant_names Candidate constant names on MCEMEXCE_CPT_Sessioni_Esame.
+     * @return string|null             Resolved meta key or null when no constant exists.
+     */
+    private static function get_defined_base_meta_key( array $constant_names ): ?string {
+        foreach ( $constant_names as $constant_name ) {
+            $fqcn_constant = 'MCEMEXCE_CPT_Sessioni_Esame::' . $constant_name;
+            if ( defined( $fqcn_constant ) ) {
+                $resolved = constant( $fqcn_constant );
+                if ( is_string( $resolved ) && '' !== $resolved ) {
+                    return $resolved;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Sanitize and validate a single session date string.
+     *
+     * @param string $raw_date Raw date string that should be in Y-m-d format.
+     * @return string          Sanitized date or empty string when invalid.
+     */
+    private static function sanitize_and_validate_date( string $raw_date ): string {
+        $date = trim( sanitize_text_field( $raw_date ) );
+        if ( '' === $date || ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date ) ) {
+            return '';
+        }
+
+        $parsed = \DateTimeImmutable::createFromFormat( '!Y-m-d', $date );
+        $errors = \DateTimeImmutable::getLastErrors();
+        if ( false === $parsed ) {
+            return '';
+        }
+
+        if (
+            is_array( $errors ) &&
+            (
+                ! empty( $errors['warning_count'] ) ||
+                ! empty( $errors['error_count'] )
+            )
+        ) {
+            return '';
+        }
+
+        if ( $parsed->format( 'Y-m-d' ) !== $date ) {
+            return '';
+        }
+
+        return $date;
+    }
+
+    /**
+     * Build a sibling-session title from the current date/time combination.
+     *
+     * @param string $date           Session date in Y-m-d format.
+     * @param string $time           Session time in H:i format.
+     * @param string $fallback_title Existing title used when date/time is unavailable.
+     * @return string                Title for the current (day, time) pair.
+     */
+    private static function build_session_title( string $date, string $time, string $fallback_title ): string {
+        if ( '' !== $date && '' !== $time ) {
+            return sprintf(
+                /* translators: 1: session date in Y-m-d format, 2: session time in H:i format */
+                __( 'Session %1$s %2$s', 'mc-ems' ),
+                $date,
+                $time
+            );
+        }
+
+        return sanitize_text_field( $fallback_title );
+    }
+
+    /**
+     * Copy taxonomy terms from source session to cloned session.
+     *
+     * Some base-plugin fields may be represented as taxonomy terms instead of
+     * post meta; cloning terms guarantees those fields stay aligned per clone.
+     *
+     * @param int $source_post_id Source session post ID.
+     * @param int $clone_id       Clone session post ID.
+     */
+    private static function clone_session_taxonomies( int $source_post_id, int $clone_id ): void {
+        $taxonomies = get_object_taxonomies( self::SESSION_CPT, 'names' );
+        if ( empty( $taxonomies ) || ! is_array( $taxonomies ) ) {
+            return;
+        }
+
+        foreach ( $taxonomies as $taxonomy ) {
+            $term_ids = wp_get_object_terms( $source_post_id, $taxonomy, [ 'fields' => 'ids' ] );
+            if ( is_wp_error( $term_ids ) ) {
+                error_log(
+                    sprintf(
+                        'PREMIUM: Failed to read source taxonomy terms for taxonomy "%s" on session #%d: %s',
+                        $taxonomy,
+                        $source_post_id,
+                        $term_ids->get_error_message()
+                    )
+                );
+                continue;
+            }
+
+            if ( ! is_array( $term_ids ) ) {
+                continue;
+            }
+
+            $append = false;
+            $set_terms_result = wp_set_object_terms( $clone_id, array_map( 'absint', $term_ids ), $taxonomy, $append );
+            if ( is_wp_error( $set_terms_result ) ) {
+                error_log(
+                    sprintf(
+                        'PREMIUM: Failed to clone taxonomy terms for taxonomy "%s" on session clone #%d: %s',
+                        $taxonomy,
+                        $clone_id,
+                        $set_terms_result->get_error_message()
+                    )
+                );
+            }
+        }
     }
 
     // -------------------------------------------------------------------------
