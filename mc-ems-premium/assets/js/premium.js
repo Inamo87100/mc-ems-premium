@@ -652,22 +652,38 @@
 
     /**
      * Validate each non-empty, trimmed line as a 24-hour HH:MM time.
-     * Returns an error string for the first invalid line, or '' if all valid.
+     *
+     * Returns an error string when:
+     *   - All lines are empty (no time was entered at all), OR
+     *   - At least one non-empty line is not a valid 24-hour HH:MM value.
+     * Returns '' when at least one valid time is present and no line is invalid.
      *
      * @param  {string} value  Full textarea text.
      * @return {string}        Error message, or empty string when all lines are valid.
      */
     _validateTimes: function( value ) {
-      var lines = value.split( '\n' );
+      var lines    = value.split( '\n' );
+      var hasValid = false;
+
       for ( var i = 0; i < lines.length; i++ ) {
         var t = lines[ i ].trim();
         if ( t === '' ) { continue; } // skip empty / whitespace-only lines
+
         if ( ! /^(?:[01]\d|2[0-3]):[0-5]\d$/.test( t ) ) {
-          var tpl = ( mcemsMultiSchedule.errorInvalidTime || 'Invalid time: %s' );
+          // At least one non-empty line is not a valid HH:MM time.
+          var tpl = ( mcemsMultiSchedule.errorInvalidTime || 'Invalid time "%s". Use HH:MM format.' );
           return tpl.replace( '%s', t );
         }
+
+        hasValid = true; // line passed: valid HH:MM
       }
-      return ''; // all non-empty lines are valid
+
+      // All non-empty lines are valid, but there were none — the textarea is blank.
+      if ( ! hasValid ) {
+        return ( mcemsMultiSchedule.errorEmptyTimes || 'Enter at least one time in HH:MM format (e.g. 09:00).' );
+      }
+
+      return ''; // at least one valid time; no invalid lines found
     },
 
     /**

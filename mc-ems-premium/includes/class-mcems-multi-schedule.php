@@ -172,10 +172,12 @@ class MCEMS_Multi_Schedule {
         // time field and to validate each line of the textarea before submission.
         if ( $on_create_sessions ) {
             wp_localize_script( 'mcems-premium-js', 'mcemsMultiSchedule', [
-                'textareaId'       => 'mcems-schedule-times-textarea',
-                'syncTo'           => 'time',
+                'textareaId'        => 'mcems-schedule-times-textarea',
+                'syncTo'            => 'time',
                 /* translators: %s is the invalid time value entered by the user */
-                'errorInvalidTime' => __( 'Invalid time "%s". Use 24-hour HH:MM format (e.g. 09:00).', 'mc-ems' ),
+                'errorInvalidTime'  => __( 'Invalid time "%s". Use 24-hour HH:MM format (e.g. 09:00).', 'mc-ems' ),
+                /* translators: shown when the textarea is completely empty */
+                'errorEmptyTimes'   => __( 'Enter at least one time in HH:MM format (e.g. 09:00).', 'mc-ems' ),
             ] );
         }
     }
@@ -192,13 +194,13 @@ class MCEMS_Multi_Schedule {
      * form is being processed (i.e. the premium textarea field is present in
      * the POST data).
      *
-     * Parsing rules:
-     *  - Split on newlines.
-     *  - Trim leading/trailing whitespace from each line.
-     *  - Skip empty lines silently.
-     *  - Accept only lines matching 24-hour HH:MM (00:00 – 23:59).
-     *  - Lines that do not match are silently skipped (PHP side); the JS layer
-     *    prevents the form from being submitted with invalid lines.
+     * Parsing rules (NF-Tools pattern):
+     *  1. Split the raw textarea value on newlines.
+     *  2. Trim leading/trailing whitespace from each line.
+     *  3. Skip empty lines silently.
+     *  4. Accept only lines matching 24-hour HH:MM (00:00 – 23:59).
+     *  5. Accumulate all valid times; silently skip invalid lines
+     *     (the JS layer prevents the form from being submitted with invalid lines).
      *
      * @param int $post_id The session post being saved.
      */
@@ -229,15 +231,20 @@ class MCEMS_Multi_Schedule {
         $lines = explode( "\n", $raw );
         $times = [];
 
+        // Step 1-5: iterate, trim, skip empty, validate, accumulate.
         foreach ( $lines as $line ) {
             $t = trim( $line );
+
             if ( '' === $t ) {
                 continue; // skip empty / whitespace-only lines
             }
+
             // Accept only valid 24-hour HH:MM values (00:00 – 23:59).
             if ( preg_match( '/^(?:[01]\d|2[0-3]):[0-5]\d$/', $t ) ) {
                 $times[] = $t;
             }
+            // Non-matching non-empty lines are silently skipped; the JS layer
+            // prevents submission of invalid times before they reach PHP.
         }
 
         if ( ! empty( $times ) ) {
