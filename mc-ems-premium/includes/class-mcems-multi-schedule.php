@@ -131,12 +131,12 @@ class MCEMS_Multi_Schedule {
         <script>
         document.addEventListener('DOMContentLoaded', function() {
             window.setTimeout(function() {
-                var wrappers = document.querySelectorAll('.session-times-wrapper');
-                if (!wrappers.length) {
+                var sessionTimeWrappers = document.querySelectorAll('.session-times-wrapper');
+                if (!sessionTimeWrappers.length) {
                     return;
                 }
 
-                wrappers.forEach(function(wrapper) {
+                sessionTimeWrappers.forEach(function(wrapper) {
                     if (wrapper.getAttribute('data-mcems-time-ui-bound') === '1') {
                         return;
                     }
@@ -160,17 +160,17 @@ class MCEMS_Multi_Schedule {
                             return;
                         }
 
-                        var first = '';
+                        var firstNonEmptyTime = '';
                         rowsContainer.querySelectorAll('.session-time-input').forEach(function(input) {
-                            if (first !== '') {
+                            if (firstNonEmptyTime !== '') {
                                 return;
                             }
                             var value = (input.value || '').trim();
                             if (value !== '') {
-                                first = value;
+                                firstNonEmptyTime = value;
                             }
                         });
-                        syncInput.value = first;
+                        syncInput.value = firstNonEmptyTime;
                     };
 
                     var toggleRemoveButtons = function() {
