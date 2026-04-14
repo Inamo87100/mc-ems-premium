@@ -40,11 +40,22 @@ class MCEMS_Multi_Schedule {
     /** POST field name for the repeatable list of session time values. */
     const TIMES_FIELD = 'session_times';
 
+    /** Internal marker meta to identify premium-generated sibling sessions. */
+    const GENERATED_FROM_META = '_mcems_premium_generated_from';
+
     /**
      * Admin page slug for the base plugin's "Create sessions" page.
      * Used to scope asset enqueuing to that page only.
      */
     const CREATE_SESSIONS_PAGE = 'mcems-create-sessions';
+
+    /**
+     * Re-entrancy guard to avoid recursive duplicate creation when this class
+     * inserts additional sessions during the same request.
+     *
+     * @var bool
+     */
+    private static $is_generating_extra_sessions = false;
 
     // -------------------------------------------------------------------------
     // Initialization
@@ -58,7 +69,7 @@ class MCEMS_Multi_Schedule {
 
         // Save all scheduled times from repeatable time inputs when a session post is created
         // via the "Create sessions" admin page.
-        add_action( 'save_post_' . self::SESSION_CPT, [ __CLASS__, 'save_schedule_times' ], 20 );
+        add_action( 'save_post_' . self::SESSION_CPT, [ __CLASS__, 'save_schedule_times' ], 20, 3 );
         error_log( 'PREMIUM: Multi-schedule hooks registered.' );
     }
 
@@ -331,11 +342,15 @@ class MCEMS_Multi_Schedule {
      * Hooked onto 'save_post_mcemexce_session' (priority 20) so it runs after
      * the base plugin's own save logic.  Only acts when the Create sessions
      * form is being processed (i.e. the premium repeatable time fields are present in
-     * the POST data).
+     * the POST data). During new-session creation only, this also generates
+     * one sibling session for each additional valid time so that every selected
+     * day receives sessions for all submitted times (day × time).
      *
-     * @param int $post_id The session post being saved.
+     * @param int        $post_id The session post being saved.
+     * @param \WP_Post   $post    Post object being saved.
+     * @param bool       $update  Whether this save is an existing-post update.
      */
-    public static function save_schedule_times( int $post_id ): void {
+    public static function save_schedule_times( int $post_id, $post, bool $update ): void {
         // Only process requests that include premium repeatable time fields.
         // Nonce verification is intentionally omitted here: this hook fires
         // inside the base plugin's form-submission flow, which already verifies
@@ -344,6 +359,11 @@ class MCEMS_Multi_Schedule {
         // have TIMES_FIELD in $_POST, so the guard below exits early.
         // phpcs:ignore WordPress.Security.NonceVerification.Missing
         if ( ! isset( $_POST[ self::TIMES_FIELD ] ) || ! is_array( $_POST[ self::TIMES_FIELD ] ) ) {
+            return;
+        }
+
+        // Prevent recursion when premium creates extra sibling sessions.
+        if ( self::$is_generating_extra_sessions ) {
             return;
         }
 
@@ -359,22 +379,119 @@ class MCEMS_Multi_Schedule {
 
         // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce checked by base plugin.
         $raw_times = wp_unslash( $_POST[ self::TIMES_FIELD ] );
+        $times = self::sanitize_and_validate_times( $raw_times );
+
+        if ( ! empty( $times ) ) {
+            update_post_meta( $post_id, self::META_KEY, $times );
+            self::create_additional_sessions_for_new_creation( $post_id, $post, $times, $update );
+            error_log( 'PREMIUM: Saved premium multi-schedule times for session post.' );
+        } else {
+            error_log( 'PREMIUM: No valid premium multi-schedule times found during save.' );
+        }
+    }
+
+    /**
+     * Sanitize and validate submitted time values from session_times[].
+     *
+     * Accepted format is strict 24-hour "HH:MM" (00:00 to 23:59). Empty values
+     * and invalid values are discarded. Duplicate valid times are removed while
+     * preserving the original order provided by the user.
+     *
+     * @param array $raw_times Raw values from POST.
+     * @return string[]        Sanitized valid times.
+     */
+    private static function sanitize_and_validate_times( array $raw_times ): array {
         $times = [];
 
         foreach ( $raw_times as $raw_time ) {
-            $time = sanitize_text_field( (string) $raw_time );
+            $time = trim( sanitize_text_field( (string) $raw_time ) );
             if ( '' === $time ) {
+                continue;
+            }
+
+            if ( ! preg_match( '/^(?:[01]\d|2[0-3]):[0-5]\d$/', $time ) ) {
                 continue;
             }
 
             $times[] = $time;
         }
 
-        if ( ! empty( $times ) ) {
-            update_post_meta( $post_id, self::META_KEY, $times );
-            error_log( 'PREMIUM: Saved premium multi-schedule times for session post.' );
-        } else {
-            error_log( 'PREMIUM: No valid premium multi-schedule times found during save.' );
+        return array_values( array_unique( $times ) );
+    }
+
+    /**
+     * During new-session creation only, generate one sibling session per extra time.
+     *
+     * The base plugin still creates one post per selected day using the primary
+     * time value. This method expands that result by cloning the newly created
+     * day-session for every additional validated time so that each day receives
+     * all submitted times (day × time). Existing-session edits are intentionally
+     * excluded by checking $update.
+     *
+     * @param int      $post_id Original session post ID created by the base flow.
+     * @param mixed    $post    Post object for the saved post.
+     * @param string[] $times   Validated list of submitted times.
+     * @param bool     $update  True when editing an existing post.
+     */
+    private static function create_additional_sessions_for_new_creation( int $post_id, $post, array $times, bool $update ): void {
+        // Requirement scope: create flow only; never generate siblings on edit.
+        if ( $update || count( $times ) <= 1 || ! class_exists( 'MCEMEXCE_CPT_Sessioni_Esame' ) ) {
+            return;
+        }
+
+        $primary_time = $times[0];
+        $extra_times  = array_slice( $times, 1 );
+        $time_meta_key = MCEMEXCE_CPT_Sessioni_Esame::MK_TIME;
+
+        // Ensure the base-created post keeps the first valid time.
+        update_post_meta( $post_id, $time_meta_key, $primary_time );
+
+        if ( ! ( $post instanceof \WP_Post ) ) {
+            return;
+        }
+
+        $all_meta = get_post_meta( $post_id );
+        if ( ! is_array( $all_meta ) ) {
+            return;
+        }
+
+        self::$is_generating_extra_sessions = true;
+
+        try {
+            foreach ( $extra_times as $time ) {
+                $clone_id = wp_insert_post( [
+                    'post_type'      => self::SESSION_CPT,
+                    'post_status'    => $post->post_status,
+                    'post_author'    => (int) $post->post_author,
+                    'post_title'     => $post->post_title,
+                    'post_content'   => $post->post_content,
+                    'post_excerpt'   => $post->post_excerpt,
+                    'post_parent'    => (int) $post->post_parent,
+                    'comment_status' => $post->comment_status,
+                    'ping_status'    => $post->ping_status,
+                    'menu_order'     => (int) $post->menu_order,
+                ], true );
+
+                if ( is_wp_error( $clone_id ) || $clone_id <= 0 ) {
+                    continue;
+                }
+
+                foreach ( $all_meta as $meta_key => $meta_values ) {
+                    if ( in_array( $meta_key, [ $time_meta_key, self::META_KEY, self::GENERATED_FROM_META, '_edit_lock', '_edit_last' ], true ) ) {
+                        continue;
+                    }
+
+                    foreach ( (array) $meta_values as $meta_value ) {
+                        add_post_meta( $clone_id, $meta_key, maybe_unserialize( $meta_value ) );
+                    }
+                }
+
+                update_post_meta( $clone_id, $time_meta_key, $time );
+                update_post_meta( $clone_id, self::META_KEY, $times );
+                update_post_meta( $clone_id, self::GENERATED_FROM_META, $post_id );
+            }
+        } finally {
+            self::$is_generating_extra_sessions = false;
         }
     }
 
