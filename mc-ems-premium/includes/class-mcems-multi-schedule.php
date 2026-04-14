@@ -386,6 +386,9 @@ class MCEMS_Multi_Schedule {
         // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce checked by base plugin.
         $raw_times = wp_unslash( $_POST[ self::TIMES_FIELD ] );
         $times = self::sanitize_and_validate_times( $raw_times );
+        if ( count( $times ) < count( $raw_times ) ) {
+            error_log( 'PREMIUM: One or more submitted session times were ignored because they were empty, duplicated, or invalid.' );
+        }
 
         if ( ! empty( $times ) ) {
             update_post_meta( $post_id, self::META_KEY, $times );
@@ -422,6 +425,8 @@ class MCEMS_Multi_Schedule {
             $times[] = $time;
         }
 
+        // Input is trimmed and validated before uniqueness, so duplicate checks are
+        // deterministic string comparisons on canonical HH:MM values.
         return array_values( array_unique( $times ) );
     }
 
@@ -464,6 +469,7 @@ class MCEMS_Multi_Schedule {
 
         $all_meta = get_post_meta( $post_id );
         if ( ! is_array( $all_meta ) ) {
+            error_log( 'PREMIUM: Unable to read source session meta during multi-time sibling generation.' );
             return;
         }
 
@@ -501,7 +507,11 @@ class MCEMS_Multi_Schedule {
                         continue;
                     }
 
-                    foreach ( (array) $meta_values as $meta_value ) {
+                    if ( ! is_array( $meta_values ) ) {
+                        $meta_values = [ $meta_values ];
+                    }
+
+                    foreach ( $meta_values as $meta_value ) {
                         add_post_meta( $clone_id, $meta_key, maybe_unserialize( $meta_value ) );
                     }
                 }
