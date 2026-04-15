@@ -1,0 +1,134 @@
+# Copyright (C) 2026 Mamba Coding
+# This file is distributed under the same license as the MC-EMS Premium plugin.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: MC-EMS Premium 2.2.6.4-premium\n"
+"Report-Msgid-Bugs-To: https://github.com/Inamo87100/mc-ems-premium/issues\n"
+"POT-Creation-Date: 2026-03-17T14:43:44+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"X-Generator: Manual\n"
+"X-Domain: mc-ems\n"
+
+#: includes/class-mcems-bookings-list.php
+msgid "You must be logged in."
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+#: includes/class-mcems-ajax.php
+msgid "Insufficient permissions."
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "Exam exam bookings list"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "Filter by %1$sdate%2$s (single day or date range). You can also filter by course."
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "Advanced search"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "Basic search"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "Date"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "Course"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "All courses"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "From"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "To"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "Filter"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "Reset"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "Export CSV"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "Select a date filter and press %1$sFilter%2$s to see the exam bookings list."
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "Date:"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "Course:"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "All"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "👥 Exam bookings:"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "Last name"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "First name"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "Email"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "Session ID"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "Exam session date"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "Exam session time"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "Proctor"
+msgstr ""
+
+#: includes/class-mcems-bookings-list.php
+msgid "No exam bookings found for these filters."
+msgstr ""
+
+#: includes/class-mcems-ajax.php
+msgid "Invalid nonce."
+msgstr ""
+
